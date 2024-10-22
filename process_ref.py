@@ -39,7 +39,7 @@ for chr in ref.references:
             no += 1
 
         # NGG or NAG reverse
-        if chr_seq[i].upper() == 'C' and (chr_seq[i - 1].upper() == 'T' or chr_seq[i - 1].upper() == 'C'):
+        if chr_seq[i].upper() == 'C' and (chr_seq[i + 1].upper() == 'T' or chr_seq[i + 1].upper() == 'C'):
             sgRNA = reverse_complement(chr_seq[i:i + 23].upper())
             print(no,end="\t",file=output)
             print(chr,end="\t",file=output)
