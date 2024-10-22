@@ -5,7 +5,7 @@ def reverse_complement(seq: str) -> str:
     trantab = str.maketrans("ACGTNacgtnRYMKrymkVBHDvbhd", "TGCANtgcanYRKMyrkmBVDHbvdh")
     return seq.translate(trantab)[::-1]
 
-ref = FastaFile("/home/wayne/DataBase/Ref/Homo/hg38.fa")
+ref = FastaFile("/mnt/ntc_data/wayne/DataBase/Homo/hg38.fa")
 output = open("./sgRNA.tsv",'w')
 print("no\tchr\tstart\tend\tstrand\tsgRNA",file=output)
 # print(dir(ref))
