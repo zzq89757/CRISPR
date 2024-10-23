@@ -51,6 +51,23 @@ def generate_sgRNA_table():
             if chr_seq[i] == "N":
                 continue
 
+            # NGG or NAG forward
+            if (
+                i >= 22
+                and chr_seq[i].upper() == "G"
+                and (chr_seq[i - 1].upper() == "A" or chr_seq[i - 1].upper() == "G")
+            ):
+                sgRNA = chr_seq[i - 22 : i + 1].upper()
+                # print(no, end="\t", file=output)
+                print(chr, end="\t", file=output)
+                print(i - 21, end="\t", file=output)
+                print(i - 1, end="\t", file=output)
+                print("+", end="\t", file=output)
+                print(sgRNA, end="\n", file=output)
+                # print(chr1_str[i - 2 :i + 1],end="\t")
+                # print(chr1_str[i - 22 :i + 1],end="\n")
+                no += 1
+
             # NGG or NAG reverse
             if (
                 i <= chr_len - 23
@@ -69,19 +86,3 @@ def generate_sgRNA_table():
                 # print(chr1_str[i - 22 :i + 1],end="\n")
                 no += 1
                 # exit()
-            # NGG or NAG forward
-            if (
-                i >= 22
-                and chr_seq[i].upper() == "G"
-                and (chr_seq[i - 1].upper() == "A" or chr_seq[i - 1].upper() == "G")
-            ):
-                sgRNA = chr_seq[i - 22 : i + 1].upper()
-                print(no, end="\t", file=output)
-                print(chr, end="\t", file=output)
-                print(i - 21, end="\t", file=output)
-                print(i - 1, end="\t", file=output)
-                print("+", end="\t", file=output)
-                print(sgRNA, end="\n", file=output)
-                # print(chr1_str[i - 2 :i + 1],end="\t")
-                # print(chr1_str[i - 22 :i + 1],end="\n")
-                no += 1
