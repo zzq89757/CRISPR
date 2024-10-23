@@ -32,18 +32,6 @@ def generate_sgRNA_table(chr_name: str):
     ref = FastaFile("/mnt/ntc_data/wayne/DataBase/Homo/hg38.fa")
     output = open(f"./split_out/Homo_{chr_name}.tsv", "w")
     print("gRNA Sequence\tPAM\tchr\tchr_strand\tgRNA_start(in chr)\tgRNA_end(in chr)\tgRNA_cut(in chr)", file=output)
-    # print(dir(ref))
-    # print(ref.get_reference_length('chr1'))
-    # print(ref.fetch('chr1',1,10))
-    # ref name
-    # print(ref.references)
-
-    # chr1_str = ref.fetch('chr1')
-
-    # print(len(chr1_str))
-    # exit()
-
-
 
     chr_seq = ref.fetch(chr_name)
     chr_len = len(chr_seq)
@@ -64,16 +52,7 @@ def generate_sgRNA_table(chr_name: str):
             grna_cut = i - 5
             detail = f"{sgRNA}\t{pam_seq}\t{chr_name}\t+\t{grna_start}\t{grna_end}\t{grna_cut}"
             print(detail,file=output)
-            # print(no, end="\t", file=output)
-            # print(sgRNA, end="\n", file=output)
-            # print(pam_seq, end="\n", file=output)
-            # print(chr_name, end="\t", file=output)
-            # print("+", end="\t", file=output)
-            # print(i - 21, end="\t", file=output)
-            # print(i - 1, end="\t", file=output)
-            # print(chr1_str[i - 2 :i + 1],end="\t")
-            # print(chr1_str[i - 22 :i + 1],end="\n")
-            # no += 1
+
 
         # NGG or NAG reverse
         if (
@@ -88,17 +67,7 @@ def generate_sgRNA_table(chr_name: str):
             grna_cut = i + 20
             detail = f"{sgRNA}\t{pam_seq}\t{chr_name}\t-\t{grna_start}\t{grna_end}\t{grna_cut}"
             print(detail,file=output)
-            # print(no, end="\t", file=output)
-            # print(chr_name, end="\t", file=output)
-            # print(i + 4, end="\t", file=output)
-            # print(i + 23, end="\t", file=output)
-            # print("-", end="\t", file=output)
-            # print(sgRNA, end="\n", file=output)
-            # print(chr_seq[i + 3:i + 23])
-            # print(chr1_str[i - 2 :i + 1],end="\t")
-            # print(chr1_str[i - 22 :i + 1],end="\n")
-            # no += 1
-            # exit()
+
 
 def main() -> None:
     chr_li = obtain_chr_li("/mnt/ntc_data/wayne/DataBase/Homo/hg38.fa")
