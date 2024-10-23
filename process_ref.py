@@ -6,7 +6,7 @@ def reverse_complement(seq: str) -> str:
     return seq.translate(trantab)[::-1]
 
 ref = FastaFile("/mnt/ntc_data/wayne/DataBase/Homo/hg38.fa")
-output = open("./sgRNA.tsv",'w')
+output = open("./sgRNA_sorted.tsv",'w')
 print("no\tchr\tstart\tend\tstrand\tsgRNA",file=output)
 # print(dir(ref))
 # print(ref.get_reference_length('chr1'))
@@ -20,7 +20,13 @@ print("no\tchr\tstart\tend\tstrand\tsgRNA",file=output)
 # exit()
 no = 1
 
-for chr in ref.references:
+sort_li = [str(x) for x in range(1,23)] + ['X', 'Y', 'M', 'Un']
+
+
+chr_li = sorted(ref.references, key=lambda x:(sort_li.index(x.split("_")[0][3:]),len(x)))
+
+
+for chr in chr_li:
     chr_seq = ref.fetch(chr)
     chr_len = len(chr_seq)
     for i in range(chr_len):
@@ -39,6 +45,7 @@ for chr in ref.references:
             no += 1
 
         # NGG or NAG reverse
+        if i == chr_len - 1:continue
         if chr_seq[i].upper() == 'C' and (chr_seq[i + 1].upper() == 'T' or chr_seq[i + 1].upper() == 'C'):
             sgRNA = reverse_complement(chr_seq[i:i + 23].upper())
             print(no,end="\t",file=output)
