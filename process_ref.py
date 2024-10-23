@@ -21,10 +21,10 @@ def reverse_complement(seq: str) -> str:
     return seq.translate(trantab)[::-1]
 
 
-def generate_sgRNA_table():
+def generate_sgRNA_table(chr_name: str):
 
     ref = FastaFile("/mnt/ntc_data/wayne/DataBase/Homo/hg38.fa")
-    output = open("./sgRNA_sorted.tsv", "w")
+    output = open("./sgRNA_chr_name}tsv", "w")
     print("no\tchr\tstart\tend\tstrand\tsgRNA", file=output)
     # print(dir(ref))
     # print(ref.get_reference_length('chr1'))
