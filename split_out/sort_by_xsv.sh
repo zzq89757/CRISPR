@@ -21,7 +21,7 @@ python /mnt/ntc_data/wayne/Repositories/CRISPR/process_ref.py
 # ls Homo*tsv |xargs -I {} echo "LC_ALL=C sort -t$\'\\\t\' -k5,5n -k4 {}" |xargs -I {} -P 24 bash {}
 # ls Homo*tsv |xargs -I {} echo "LC_ALL=C sort -t$\'\t\' -k5,5n -k4 {} > sorted/{}" > all_chr_sort.sh
 # cat all_chr_sort.sh|xargs -I {} -P 24 bash -c {}
-mkdir sorted
+# mkdir sorted
 ls Homo*tsv |xargs -I {} echo "LC_ALL=C sort -t$'\t' -k5,5n -k4 {} > sorted/{}&" > all_chr_sort.sh
 bash all_chr_sort.sh
 

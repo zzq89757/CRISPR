@@ -47,12 +47,13 @@ def generate_sgRNA_table(chr_name: str):
             and (chr_seq[i - 1].upper() == "A" or chr_seq[i - 1].upper() == "G")
         ):
             sgRNA = chr_seq[i - 22 : i - 2].upper()
-            pam_seq = chr_seq[i - 2 :i + 1].upper()
-            grna_start = i - 21
-            grna_end = i - 2
-            grna_cut = i - 5
-            detail = f"{sgRNA}\t{pam_seq}\t{chr_name}\t+\t{grna_start}\t{grna_end}\t{grna_cut}"
-            print(detail,file=output)
+            if sgRNA.find("TTTT") == -1:
+                pam_seq = chr_seq[i - 2 :i + 1].upper()
+                grna_start = i - 21
+                grna_end = i - 2
+                grna_cut = i - 5
+                detail = f"{sgRNA}\t{pam_seq}\t{chr_name}\t+\t{grna_start}\t{grna_end}\t{grna_cut}"
+                print(detail,file=output)
 
 
         # NGG or NAG reverse
@@ -62,17 +63,19 @@ def generate_sgRNA_table(chr_name: str):
             and (chr_seq[i + 1].upper() == "T" or chr_seq[i + 1].upper() == "C")
         ):
             sgRNA = reverse_complement(chr_seq[i + 3 : i + 23].upper())
-            pam_seq = reverse_complement(chr_seq[i:i + 3].upper())
-            grna_start = i + 23
-            grna_end = i + 4
-            grna_cut = i + 20
-            detail = f"{sgRNA}\t{pam_seq}\t{chr_name}\t-\t{grna_start}\t{grna_end}\t{grna_cut}"
-            print(detail,file=output)
+            if sgRNA.find("TTTT") == -1:
+                pam_seq = reverse_complement(chr_seq[i:i + 3].upper())
+                grna_start = i + 23
+                grna_end = i + 4
+                grna_cut = i + 20
+                detail = f"{sgRNA}\t{pam_seq}\t{chr_name}\t-\t{grna_start}\t{grna_end}\t{grna_cut}"
+                print(detail,file=output)
 
 
 def main() -> None:
     # chr_li = obtain_chr_li(REFPATH)
-    chr_li = [chr + i for i in list(range(1,23)) + ['X', 'Y', 'M']]
+    chr_name_li = list(range(1,23)) + ['X', 'Y', 'M']
+    chr_li = ["chr" + str(i) for i in chr_name_li]
     async_in_iterable_structure(generate_sgRNA_table, chr_li, 20)
     # generate_sgRNA_table('chr1',ref_handle)
     
