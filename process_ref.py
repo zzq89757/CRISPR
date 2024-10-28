@@ -1,7 +1,7 @@
 from pysam import FastaFile
 from multiprocessing import Pool, RLock
 
-REFPATH = "/mnt/ntc_data/wayne/DataBase/Homo/hg38.fa"
+
 
 def async_in_iterable_structure(fun, iterable_structure, cpus):
     def init(l):
@@ -29,7 +29,7 @@ def obtain_chr_li(ref: str) -> list:
 
 
 def generate_sgRNA_table(chr_name: str):
-
+    REFPATH = "/mnt/ntc_data/wayne/DataBase/Homo/hg38.fa"
     ref = FastaFile(REFPATH)
     output = open(f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_out/Homo_{chr_name}.tsv", "w")
     print("gRNA Sequence\tPAM\tchr\tchr_strand\tgRNA_start(in chr)\tgRNA_end(in chr)\tgRNA_cut(in chr)", file=output)
@@ -71,8 +71,9 @@ def generate_sgRNA_table(chr_name: str):
 
 
 def main() -> None:
-    chr_li = obtain_chr_li(REFPATH)
-    async_in_iterable_structure(generate_sgRNA_table, chr_li, 10)
+    # chr_li = obtain_chr_li(REFPATH)
+    chr_li = [chr + i for i in list(range(1,23)) + ['X', 'Y', 'M']]
+    async_in_iterable_structure(generate_sgRNA_table, chr_li, 20)
     # generate_sgRNA_table('chr1',ref_handle)
     
 
