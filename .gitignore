@@ -1,2 +1,5 @@
 *tsv
 *.out
+VCF
+GTF
+GCF*
