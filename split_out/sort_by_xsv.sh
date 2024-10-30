@@ -22,6 +22,10 @@ python /mnt/ntc_data/wayne/Repositories/CRISPR/process_ref.py
 # ls Homo*tsv |xargs -I {} echo "LC_ALL=C sort -t$\'\t\' -k5,5n -k4 {} > sorted/{}" > all_chr_sort.sh
 # cat all_chr_sort.sh|xargs -I {} -P 24 bash -c {}
 # mkdir sorted
-ls Homo*tsv |xargs -I {} echo "LC_ALL=C sort -t$'\t' -k5,5n -k4 {} > sorted/{}&" > all_chr_sort.sh
+# ls Homo*tsv |xargs -I {} echo "LC_ALL=C sort -t$'\t' -k7,7n -k4 {} > sorted/{}&" > all_chr_sort.sh
+ls Homo*tsv |xargs -I {} echo "LC_ALL=C sort -t$'\t' -k7,7n {} > sorted/{}&" > all_chr_sort.sh
 bash all_chr_sort.sh
 
+# 
+# ls sorted/Homo_chr[MY].tsv|xargs -I {} gawk 'NR==1 { print "gRNA-ID", $0} NR>1{ print NR-1, $0}' {}
+# gawk 'NR==1 || FNR == 1 { print "gRNA-ID", $0} NR>1{ print NR-1, $0}' sorted/Homo_chr[MY].tsv

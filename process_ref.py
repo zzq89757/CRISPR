@@ -67,14 +67,15 @@ def generate_sgRNA_table(chr_name: str):
                 pam_seq = reverse_complement(chr_seq[i:i + 3].upper())
                 grna_start = i + 23
                 grna_end = i + 4
-                grna_cut = i + 20
+                grna_cut = i + 7
                 detail = f"{sgRNA}\t{pam_seq}\t{chr_name}\t-\t{grna_start}\t{grna_end}\t{grna_cut}"
                 print(detail,file=output)
 
 
 def main() -> None:
     # chr_li = obtain_chr_li(REFPATH)
-    chr_name_li = list(range(1,23)) + ['X', 'Y', 'M']
+    chr_name_li = list(range(1,23)) + ['X', 'Y']
+    # chr_name_li = ['M']
     chr_li = ["chr" + str(i) for i in chr_name_li]
     async_in_iterable_structure(generate_sgRNA_table, chr_li, 20)
     # generate_sgRNA_table('chr1',ref_handle)
