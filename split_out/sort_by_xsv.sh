@@ -10,7 +10,7 @@
 # LC_ALL=C sort
 
 # scan genome and generate database of single chr
-python /mnt/ntc_data/wayne/Repositories/CRISPR/process_ref.py
+python /mnt/ntc_data/wayne/Repositories/CRISPR/process_ref_nc.py
 
 # final valid sort and merge command
 
