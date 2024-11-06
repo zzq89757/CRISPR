@@ -51,7 +51,7 @@ def generate_sgRNA_table(chr_name: str):
             and (chr_seq[i - 1].upper() == "A" or chr_seq[i - 1].upper() == "G")
         ):
             sgRNA = chr_seq[i - 22 : i - 2].upper()
-            if sgRNA.find("TTTT") == -1:
+            if sgRNA.find("TTTT") == -1 and chr_seq[i - 22 : i - 1].find("N") == -1:
                 pam_seq = chr_seq[i - 2 : i + 1].upper()
                 grna_start = i - 21
                 grna_end = i - 2
@@ -66,7 +66,7 @@ def generate_sgRNA_table(chr_name: str):
             and (chr_seq[i + 1].upper() == "T" or chr_seq[i + 1].upper() == "C")
         ):
             sgRNA = reverse_complement(chr_seq[i + 3 : i + 23].upper())
-            if sgRNA.find("TTTT") == -1:
+            if sgRNA.find("TTTT") == -1 and chr_seq[i + 2 : i + 23].find("N") == -1:
                 pam_seq = reverse_complement(chr_seq[i : i + 3].upper())
                 grna_start = i + 23
                 grna_end = i + 4
