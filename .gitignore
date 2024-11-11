@@ -4,3 +4,5 @@ VCF
 GTF
 GCF*
 tmp
+.nfs*
+*.xlsx

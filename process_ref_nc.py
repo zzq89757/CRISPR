@@ -1,6 +1,7 @@
 from pysam import FastaFile
 from multiprocessing import Pool, RLock
 import pandas as pd
+import re
 
 nc_table = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
 df = pd.read_csv(nc_table,sep="\t",header=None)
@@ -34,25 +35,26 @@ def generate_sgRNA_table(chr_name: str):
         f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_out/spCas9_Homo_{chr_name}.tsv", "w"
     )
     print(
-        "gRNA Sequence\tPAM\tchr\tchr_strand\tgRNA_start(in chr)\tgRNA_end(in chr)\tgRNA_cut(in chr)",
+        "gRNA_Seq\tPAM\tchr\tchr_strand\tgRNA_start(in chr)\tgRNA_end(in chr)\tgRNA_cut(in chr)",
         file=output,
     )
 
-    chr_seq = ref.fetch(chr2nc_dict[chr_name])
+    chr_seq = ref.fetch(chr2nc_dict[chr_name]).upper()
     chr_len = len(chr_seq)
     for i in range(chr_len):
-        if chr_seq[i].upper() == "N":
+        if chr_seq[i] == "N":
             continue
 
         # NGG or NAG forward
         if (
             i >= 22
-            and chr_seq[i].upper() == "G"
-            and (chr_seq[i - 1].upper() == "A" or chr_seq[i - 1].upper() == "G")
+            and chr_seq[i] == "G"
+            and (chr_seq[i - 1] == "A" or chr_seq[i - 1] == "G")
         ):
-            sgRNA = chr_seq[i - 22 : i - 2].upper()
-            if sgRNA.find("TTTT") == -1 and chr_seq[i - 22 : i - 1].find("N") == -1:
-                pam_seq = chr_seq[i - 2 : i + 1].upper()
+            sgRNA = chr_seq[i - 22 : i - 2]
+            # if sgRNA.find("TTTT") == -1 and chr_seq[i - 22 : i - 1].find("N") == -1:
+            if sgRNA.find("TTTT") == -1 and (not re.search(r"[RYMKVBHDN]",chr_seq[i - 22 : i - 1])):
+                pam_seq = chr_seq[i - 2 : i + 1]
                 grna_start = i - 21
                 grna_end = i - 2
                 grna_cut = i - 5
@@ -62,12 +64,13 @@ def generate_sgRNA_table(chr_name: str):
         # NGG or NAG reverse
         if (
             i <= chr_len - 23
-            and chr_seq[i].upper() == "C"
-            and (chr_seq[i + 1].upper() == "T" or chr_seq[i + 1].upper() == "C")
+            and chr_seq[i] == "C"
+            and (chr_seq[i + 1] == "T" or chr_seq[i + 1] == "C")
         ):
-            sgRNA = reverse_complement(chr_seq[i + 3 : i + 23].upper())
-            if sgRNA.find("TTTT") == -1 and chr_seq[i + 2 : i + 23].find("N") == -1:
-                pam_seq = reverse_complement(chr_seq[i : i + 3].upper())
+            sgRNA = reverse_complement(chr_seq[i + 3 : i + 23])
+            # if sgRNA.find("TTTT") == -1 and chr_seq[i + 2 : i + 23].find("N") == -1:
+            if sgRNA.find("TTTT") == -1 and (not re.search(r"[RYMKVBHDN]",chr_seq[i + 2 : i + 23])):
+                pam_seq = reverse_complement(chr_seq[i : i + 3])
                 grna_start = i + 23
                 grna_end = i + 4
                 grna_cut = i + 7

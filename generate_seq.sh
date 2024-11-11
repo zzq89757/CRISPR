@@ -1,1 +1,1 @@
-python process_ref.py
+python process_ref_nc.py
