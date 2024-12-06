@@ -6,3 +6,7 @@ GCF*
 tmp
 .nfs*
 *.xlsx
+*log
+*gtf
+*li
+*count
