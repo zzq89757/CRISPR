@@ -3,8 +3,8 @@ import pandas as pd
 from collections import defaultdict, Counter
 from pathlib import Path
 from multiprocessing import Pool, RLock
-from pandarallel import pandarallel
-pandarallel.initialize(progress_bar=True)
+# from pandarallel import pandarallel
+# pandarallel.initialize(progress_bar=True)
 
 
 def async_in_iterable_structure(fun, iterable_structure, cpus):
@@ -50,8 +50,12 @@ def filter_notchr(nc2chr_dict: dict, gtf_df: pd.DataFrame) -> None:
 
 def append_gene_id_col(gtf_df: pd.DataFrame) -> None:
     """为gtf添加gene id 和 tran id 列"""
-    gtf_df[9] = gtf_df[8].str.split('"').str[1]
-    gtf_df[10] = gtf_df[8].str.split('"').str[3]
+    gtf_df[9] = gtf_df[8].str.split('"').str[1]  # gene symbol 
+    gtf_df[10] = gtf_df[8].str.split('"').str[3] # tran id 
+    # gtf_df[11] = gtf_df[8].str.split('GeneID:').str[1].str.split('"')[0] # ID
+    # gtf_df[12] = gtf_df[8].str.split('gene_biotype "').str[1].str.split('"')[0] # type
+    # gtf_df[11] = gtf_df[8].str.split('GeneID:').str[1].str.split('"')[0] # ID
+    # gtf_df[12] = gtf_df[8].str.split('gene_biotype "').str[1] # type
 
 
 def obtain_gene_id_li(gtf_df: pd.DataFrame) -> defaultdict:
@@ -75,7 +79,7 @@ def obtain_gene_id_li(gtf_df: pd.DataFrame) -> defaultdict:
 def main() -> None:
     nc2chr_file = "nc2chr.tsv"
     gtf_file = "GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf"
-    gtf_file = "1w.gtf"
+    # gtf_file = "1w.gtf"
     num_count = Counter()
     info_dict = defaultdict()
     # 读取nc2chr_file 生成 NC -> chr 的映射字典
@@ -104,7 +108,7 @@ def main() -> None:
     for chr_name, sub_df in gtf_df.groupby(0,sort=False):
         a=[]
         for gene_name, sub_gene_df in sub_df.groupby(9,sort=False):
-            print(sub_gene_df)
+            # print(sub_gene_df)
             append_flag = 1
             # 跳过coding和nc之外的基因
             if gene_name not in gene_id_li:
@@ -125,7 +129,15 @@ def main() -> None:
                 # 选取含NM和NR转录本的gene 创建路径
                 if tran_prefix.startswith("N") and append_flag:
                     # a = pd.concat([a,sub_gene_df[[9,3,4,6]].iloc[0]],axis=0)
-                    a.append(sub_gene_df[[9,3,4,6]].iloc[0])
+                    # 处理基因信息
+                    gene_item = sub_gene_df[[9, 3, 4, 6]].iloc[0]
+                    gene_item[10] = sub_gene_df.iloc[0][8].split('GeneID:')[1].split('"')[0] # ID
+                    gene_type_raw = sub_gene_df.iloc[0][8].split('gene_biotype "')[1].split('"')[0]
+                    gene_item[11] = "protein coding" if gene_type_raw.find("RNA") == -1 else "non-coding" # type
+                    # gene_item = gene_item[[9, 3, 4, 6, 10, 11]]
+                    a.append(gene_item)
+                    # print(gene_item)
+                    
                     append_flag = 0
                     
                     # 保存exon 和 cds 信息

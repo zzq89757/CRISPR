@@ -196,9 +196,10 @@ def check_all():
 
 def main() -> None:
     # merged_df = process_gene_pos_insertion("split_gtf/NC_000001.11/Gene_list.tsv")
-    check_all()
+    # check_all()
     # merged_df = insertion_detective("/mnt/ntc_data/wayne/Repositories/CRISPR/test.tsv")
     # merged_df = insertion_detective("/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/NC_000006.12/Gene_list.tsv")
+    merged_df = insertion_detective("/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/NC_000024.10/Gene_list.tsv")
     # merged_df.to_csv("./test_g.tsv", index=False, header=None, sep="\t")
 
 

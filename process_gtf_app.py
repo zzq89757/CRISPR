@@ -56,11 +56,12 @@ def append_gene_id_col(gtf_df: pd.DataFrame) -> None:
 def obtain_gene_id_li(gtf_df: pd.DataFrame) -> defaultdict:
     """挑出gene行,只保留gene biotype 为protein_coding和ncRNA的gene id 列表并统计数目"""
     gene_df = gtf_df[gtf_df[2] == "gene"]
-    contains_bool_li1 = gene_df[8].str.contains(r"protein_coding")
-    contains_bool_li2 = gene_df[8].str.contains(r"ncRNA")
-    # print(sum(contains_bool_li1))
-    contains_bool_li = [x or y for x, y in zip(contains_bool_li1, contains_bool_li2)]
+    contains_bool_li1 = gene_df[8].str.contains(r"gene_biotype \"protein_coding\";")
+    contains_bool_li2 = gene_df[8].str.contains(r"gene_biotype \"ncRNA\";")
+    contains_bool_li3 = gene_df[8].str.contains(r"gene_biotype \"lncRNA\";")
+    contains_bool_li = [x or y or z for x, y, z in zip(contains_bool_li1, contains_bool_li2, contains_bool_li3)]
     gene_df = gene_df[contains_bool_li]
+
     gene_id_li = gene_df[9].to_list()
     # 创建拆分的gtf的路径
     # for chr_name, sub_df in gene_df.groupby(0):
@@ -124,7 +125,13 @@ def main() -> None:
                 # 选取含NM和NR转录本的gene 创建路径
                 if tran_prefix.startswith("N") and append_flag:
                     # a = pd.concat([a,sub_gene_df[[9,3,4,6]].iloc[0]],axis=0)
-                    a.append(sub_gene_df[[9,3,4,6]].iloc[0])
+                    # 处理基因信息
+                    gene_item = sub_gene_df[[9, 3, 4, 6]].iloc[0]
+                    gene_item[10] = sub_gene_df.iloc[0][8].split('GeneID:')[1].split('"')[0] # ID
+                    gene_type_raw = sub_gene_df.iloc[0][8].split('gene_biotype "')[1].split('"')[0]
+                    gene_item[11] = "protein coding" if gene_type_raw.find("RNA") == -1 else "non-coding" # type
+                    # gene_item = gene_item[[9, 10, 3, 4, 6, 11]]
+                    a.append(gene_item)
                     append_flag = 0
                     
                     # 保存exon 和 cds 信息
