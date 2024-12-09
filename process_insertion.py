@@ -56,8 +56,6 @@ def fill_cut_site(
     for cut_site in cut_site_li:
         sub_df = regions_df[(regions_df[1] <= cut_site) & (cut_site <= regions_df[2])]
         cover_gene_li.append(sub_df[0].to_list())
-    # print(cut_site_li)
-    # print(cover_gene_li)
     # print(merged_sub_df)
     # print()
     # 回补切点
@@ -71,6 +69,8 @@ def fill_cut_site(
         # 获取待插入切点区间的索引号
         # print(sub_df)
         if sub_df.empty:
+            print(cut_site_li)
+            print(cover_gene_li)
             print(merged_sub_df)
         idx = int(sub_df.index[0])
         
