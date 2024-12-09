@@ -1,6 +1,7 @@
 from instertion_find import process_gene_pos_insertion, finnaly_check
 import pandas as pd
 from collections import Counter
+from pathlib import Path
 
 pd.options.mode.copy_on_write = True
 
@@ -55,16 +56,24 @@ def fill_cut_site(
     for cut_site in cut_site_li:
         sub_df = regions_df[(regions_df[1] <= cut_site) & (cut_site <= regions_df[2])]
         cover_gene_li.append(sub_df[0].to_list())
+    # print(cut_site_li)
     # print(cover_gene_li)
     # print(merged_sub_df)
+    # print()
     # 回补切点
     for i, cut_site in enumerate(cut_site_li):
         sub_df = merged_sub_df[
             (merged_sub_df[1] == cut_site + 1) | (cut_site == merged_sub_df[2] + 1)
         ]
         sub_df = sub_df[sub_df[0] == ",".join(cover_gene_li[i])]
+        # print(int(sub_df.index[0]))
+        # continue
         # 获取待插入切点区间的索引号
+        # print(sub_df)
+        if sub_df.empty:
+            print(merged_sub_df)
         idx = int(sub_df.index[0])
+        
         filled_region_idx_li.append(idx)
 
         tmp_sub_df = (
@@ -86,6 +95,7 @@ def fill_cut_site(
     # print(cut_site_li)
     # print(filled_cut_site_li)
     # print(merged_sub_df)
+    # return
     new_merged_li = [
         merged_sub_df.iloc[i] if len(v) == 0 else v
         for i, v in enumerate(filled_cut_site_li)
@@ -115,6 +125,7 @@ def insertion_merge(regions_li: list) -> pd.DataFrame:
     merged_df = merge_intervals(cutted_df)
     # 看切点落在哪几个基因区间里 后续进行回补
     filled_df = fill_cut_site(regions_df, merged_df, cut_site_li)
+    
     return filled_df
     # print(cut_site_li)
 
@@ -169,19 +180,26 @@ def insertion_detective(gene_pos_table) -> pd.DataFrame:
 
 
 def check_all():
-    from pathlib import Path
+    
 
     for pt in Path("split_gtf/").glob("*"):
         gtf_file = pt / "Gene_list.tsv"
-        finnaly_check(gtf_file)
+        print(gtf_file)
+        if Path(pt /"Gene_list_cut_insertion.tsv").exists():continue
+        try:
+            merged_df = insertion_detective(gtf_file.absolute())
+        except IndexError as e:
+            print(f"{gtf_file} have single base insertion !!!!")
+            continue
+        merged_df.to_csv(pt /"Gene_list_cut_insertion.tsv", index=False, header=None, sep="\t")
 
 
 def main() -> None:
     # merged_df = process_gene_pos_insertion("split_gtf/NC_000001.11/Gene_list.tsv")
-    # check_all()
+    check_all()
     # merged_df = insertion_detective("/mnt/ntc_data/wayne/Repositories/CRISPR/test.tsv")
-    merged_df = insertion_detective("/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/NC_000001.11/Gene_list.tsv")
-    merged_df.to_csv("./test_g.tsv", index=False, header=None, sep="\t")
+    # merged_df = insertion_detective("/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/NC_000006.12/Gene_list.tsv")
+    # merged_df.to_csv("./test_g.tsv", index=False, header=None, sep="\t")
 
 
 if __name__ == "__main__":
