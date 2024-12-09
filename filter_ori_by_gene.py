@@ -2,6 +2,7 @@ import pandas as pd
 
 
 def annotation_gdb(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame) -> pd.DataFrame:
+    # 需要分别考虑切点和起止
     
     return pd.DataFrame([])
 
