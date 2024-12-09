@@ -129,6 +129,8 @@ def main() -> None:
                     gene_item = sub_gene_df[[9, 3, 4, 6]].iloc[0]
                     gene_item[10] = sub_gene_df.iloc[0][8].split('GeneID:')[1].split('"')[0] # ID
                     gene_type_raw = sub_gene_df.iloc[0][8].split('gene_biotype "')[1].split('"')[0]
+                    if gene_type_raw not in ["protein_coding", "lncRNA", "ncRNA"]:
+                        print(sub_gene_df)
                     gene_item[11] = "protein coding" if gene_type_raw.find("RNA") == -1 else "non-coding" # type
                     # gene_item = gene_item[[9, 10, 3, 4, 6, 11]]
                     a.append(gene_item)
