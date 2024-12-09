@@ -12,18 +12,18 @@ def split_intervals(df: pd.DataFrame, cuts: list) -> pd.DataFrame:
     result = []
 
     for _, row in df.iterrows():
-        gene, start, end, strand = row[0], row[1], row[2], row[3]
+        gene, start, end, strand, id, type = row[0], row[1], row[2], row[3], row[4], row[5]
         segment_start = start
         cut_flag = 0
         for cut in cuts:
             # 可切区间
             if cut > segment_start and cut <= end:
                 cut_flag = 1
-                result.append([gene, segment_start + 1, cut - 1, strand])
+                result.append([gene, segment_start + 1, cut - 1, strand, id, type])
                 segment_start = cut
         # 不可切区间
         if not cut_flag:
-            result.append([gene, start + 1, end - 1, strand])
+            result.append([gene, start + 1, end - 1, strand, id, type])
 
     # print(pd.DataFrame(result))
     return pd.DataFrame(result)
@@ -39,6 +39,8 @@ def merge_intervals(df: pd.DataFrame) -> pd.DataFrame:
             common_start,
             sub_df[2][0],
             ",".join(sub_df[3].to_list()),
+            ",".join([str(x) for x in sub_df[4].to_list()]),
+            ",".join(sub_df[5].to_list()),
         ]
         merged_li.append(merged_item)
     # print(pd.DataFrame(merged_li))
@@ -133,7 +135,7 @@ def insertion_merge(regions_li: list) -> pd.DataFrame:
 
 
 def insertion_detective(gene_pos_table) -> pd.DataFrame:
-    type_li = ["string", "int32", "int32", "category"]
+    type_li = ["string", "int32", "int32", "category", "int32", "category"]
     type_dict = dict(enumerate(type_li))
     res = []
     # 示例输入数据
@@ -196,10 +198,10 @@ def check_all():
 
 def main() -> None:
     # merged_df = process_gene_pos_insertion("split_gtf/NC_000001.11/Gene_list.tsv")
-    # check_all()
+    check_all()
     # merged_df = insertion_detective("/mnt/ntc_data/wayne/Repositories/CRISPR/test.tsv")
     # merged_df = insertion_detective("/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/NC_000006.12/Gene_list.tsv")
-    merged_df = insertion_detective("/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/NC_000024.10/Gene_list.tsv")
+    # merged_df = insertion_detective("/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/NC_000024.10/Gene_list.tsv")
     # merged_df.to_csv("./test_g.tsv", index=False, header=None, sep="\t")
 
 
