@@ -11,7 +11,7 @@ def annotation_gdb(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame) -> pd.DataFrame
     gene_pos_len = len(gene_start)
     current_gene_pos_idx = 0
 
-    ## 遍历 gRNA
+    ## 遍历 gRNA <考虑gRNA不同方向时切点位置不同>
     for g_idx, g_pos in enumerate(gRNA_pos):
         # 跳过位于当前基因起始位置之前以及基因间的的 gRNA
         if g_pos < gene_start[current_gene_pos_idx]:
@@ -39,7 +39,7 @@ def annotation_gdb(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame) -> pd.DataFrame
 def main() -> None:
     t = time.time()
     nc_no = "NC_000024.10"
-    chr = "chr1"
+    chr = "chrY"
 
     nc_table = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     df = pd.read_csv(nc_table, sep="\t", header=None)
