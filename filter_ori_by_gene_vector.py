@@ -4,29 +4,30 @@ import pandas as pd
 
 def annotation_gdb(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame) -> pd.DataFrame:
     # 需要分别考虑切点和起止 三个位置 超出基因末端时 loc 采用(+/- len(over))
-    gene_pos_len = len(gene_pos_df)
+    # 提取必要列为 NumPy 数组
+    gene_start = gene_pos_df[1].to_numpy()
+    gene_end = gene_pos_df[2].to_numpy()
+    gRNA_pos = gdb[6].to_numpy()
+    gene_pos_len = len(gene_start)
     current_gene_pos_idx = 0
-    for idx, g_item in gdb.iterrows():
-        # print(current_gene_pos_idx)
 
-        # 跳过染色体前端未到达基因区的gRNA以及索引切换后位于基因起始前的gRNA
-        if g_item[6] < gene_pos_df[1][current_gene_pos_idx]:
+    ## 遍历 gRNA
+    for g_idx, g_pos in enumerate(gRNA_pos):
+        # 跳过位于当前基因起始位置之前的 gRNA
+        if g_pos < gene_start[current_gene_pos_idx]:
             continue
-        
-        if g_item[6] > gene_pos_df[2][current_gene_pos_idx]:
+
+        # 跳过位于当前基因结束位置之后的 gRNA
+        if g_pos > gene_end[current_gene_pos_idx]:
             current_gene_pos_idx += 1
-            # 索引超出时退出循环
-            if current_gene_pos_idx == gene_pos_len:
+            # 索引超出范围时退出
+            if current_gene_pos_idx >= gene_pos_len:
                 break
-        if (
-            gene_pos_df[1][current_gene_pos_idx]
-            <= g_item[6]
-            <= gene_pos_df[2][current_gene_pos_idx]
-        ):
-            # 记录信息
-            ...
-            print(f"{g_item[6]} in {gene_pos_df.iloc[current_gene_pos_idx][1]}-{gene_pos_df.iloc[current_gene_pos_idx][2]} ")
-            # print(f"{g_item[6]} in {gene_pos_df.iloc[current_gene_pos_idx][1]}-{gene_pos_df.iloc[current_gene_pos_idx][2]} ", flush=True, end="\r")
+
+        # 如果 gRNA 位于当前基因范围内，记录信息
+        if gene_start[current_gene_pos_idx] <= g_pos <= gene_end[current_gene_pos_idx]:
+            # print(f"{g_pos} in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}", flush=True, end="\r")
+            print(f"{g_pos} in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}")
             
     
     return pd.DataFrame([])
@@ -47,8 +48,8 @@ def main() -> None:
     # 读取gRNA db 文件 
     type_li = ['string', 'string', 'category', 'category', 'int32', 'int32', 'int32']
     type_dict= dict(enumerate(type_li))
-    # gdb_df = pd.read_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_out/sorted/no_head/spCas9_Homo_{chr}.tsv", header=None, sep="\t")
-    gdb_df = pd.read_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/y_10w.tsv", header=None, sep="\t")
+    gdb_df = pd.read_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_out/sorted/no_head/spCas9_Homo_{chr}.tsv", header=None, sep="\t")
+    # gdb_df = pd.read_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/y_10w.tsv", header=None, sep="\t")
     # gdb 注释
     annotated_df = annotation_gdb(gdb_df, gene_pos_df)
     # 保存为tsv文件

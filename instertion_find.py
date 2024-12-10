@@ -73,7 +73,8 @@ def process_sg(gdb_file: str, gene_pos_df: pd.DataFrame) -> None:
                 else:
                     ...
                     # print(f"{gdb_df.iloc[i][6]} not in {gene_pos_df.iloc[current_idx][1]}-{gene_pos_df.iloc[current_idx][2]} ")
-                    # mihari
+                    # 
+                    (
                     #- 安阿 以伊 宇 衣江 *於
                     #k 加 幾 久 计 已
                     #s 佐散 之 *寸须 世 曾
@@ -85,6 +86,8 @@ def process_sg(gdb_file: str, gene_pos_df: pd.DataFrame) -> None:
                     #*r 良 利 留流 礼 吕
                     #*w 和           逺乎
                     #*[n] 无尔
+                    )
+                
                 break
         if gdb_df[6][i] > gene_pos_df[2][current_idx]:
             continue
