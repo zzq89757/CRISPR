@@ -13,24 +13,25 @@ def annotation_gdb(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame) -> pd.DataFrame
 
     ## 遍历 gRNA
     for g_idx, g_pos in enumerate(gRNA_pos):
-        # 跳过位于当前基因起始位置之前的 gRNA
+        # 跳过位于当前基因起始位置之前以及基因间的的 gRNA
         if g_pos < gene_start[current_gene_pos_idx]:
             continue
-
-        # 跳过位于当前基因结束位置之后的 gRNA
-        if g_pos > gene_end[current_gene_pos_idx]:
+      
+        # 跨多个基因时的情况
+        while (current_gene_pos_idx < gene_pos_len -1  and g_pos > gene_end[current_gene_pos_idx]):
             current_gene_pos_idx += 1
-            # 索引超出范围时退出
-            if current_gene_pos_idx >= gene_pos_len:
-                break
-
-        # 如果 gRNA 位于当前基因范围内，记录信息
+        
+        # 大于max end时 结束
+        if current_gene_pos_idx == gene_pos_len -1 and g_pos > gene_end[-1]:
+            break
+        
+        # 如果 gRNA 位于当前基因范围内，记录信息 chr1:1335323 跨两个或以上的位点会被跳过
         if g_pos <= gene_end[current_gene_pos_idx]:
             # print(f"{g_pos} in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}", flush=True, end="\r")
-            # print(f"{g_pos} in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}")
+            print(f"{g_pos} in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}")
             ...
         else:
-            print("nope")
+            print(f"{g_pos} not in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}")
 
     return pd.DataFrame([])
 
@@ -38,7 +39,7 @@ def annotation_gdb(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame) -> pd.DataFrame
 def main() -> None:
     t = time.time()
     nc_no = "NC_000024.10"
-    chr = "chrY"
+    chr = "chr1"
 
     nc_table = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     df = pd.read_csv(nc_table, sep="\t", header=None)
