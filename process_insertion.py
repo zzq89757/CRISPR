@@ -12,7 +12,14 @@ def split_intervals(df: pd.DataFrame, cuts: list) -> pd.DataFrame:
     result = []
 
     for _, row in df.iterrows():
-        gene, start, end, strand, id, type = row[0], row[1], row[2], row[3], row[4], row[5]
+        gene, start, end, strand, id, type = (
+            row[0],
+            row[1],
+            row[2],
+            row[3],
+            row[4],
+            row[5],
+        )
         segment_start = start
         cut_flag = 0
         for cut in cuts:
@@ -75,7 +82,7 @@ def fill_cut_site(
             print(cover_gene_li)
             print(merged_sub_df)
         idx = int(sub_df.index[0])
-        
+
         filled_region_idx_li.append(idx)
 
         tmp_sub_df = (
@@ -113,13 +120,7 @@ def insertion_merge(regions_li: list) -> pd.DataFrame:
     # print(regions_df)
     # 根据所有区间起止拆分子区间后将各个基因放入
 
-    # 检查子区间内基因数目 根据每个子区间交集的起始（切点）设置位置偏移量
-
-    # 切点包括所有的区间起始终止 (排除min start 和max end)
-    min_start = regions_df[1][0]
-    max_end = max(regions_df[2])
-    # print(min_start,end="\t")
-    # print(max_end)
+    # 获取所有切点(所有的区间起始终止)
     cut_site_li = sorted(pd.concat([regions_df[1], regions_df[2]]).drop_duplicates())
     # 根据切点拆分子区间
     cutted_df = split_intervals(regions_df, cut_site_li)
@@ -127,7 +128,7 @@ def insertion_merge(regions_li: list) -> pd.DataFrame:
     merged_df = merge_intervals(cutted_df)
     # 看切点落在哪几个基因区间里 后续进行回补
     filled_df = fill_cut_site(regions_df, merged_df, cut_site_li)
-    
+
     return filled_df
     # print(cut_site_li)
 
@@ -182,18 +183,20 @@ def insertion_detective(gene_pos_table) -> pd.DataFrame:
 
 
 def check_all():
-    
 
     for pt in Path("split_gtf/").glob("*"):
         gtf_file = pt / "Gene_list.tsv"
         print(gtf_file)
-        if Path(pt /"Gene_list_cut_insertion.tsv").exists():continue
+        if Path(pt / "Gene_list_cut_insertion.tsv").exists():
+            continue
         try:
             merged_df = insertion_detective(gtf_file.absolute())
         except IndexError as e:
             print(f"{gtf_file} have single base insertion !!!!")
             continue
-        merged_df.to_csv(pt /"Gene_list_cut_insertion.tsv", index=False, header=None, sep="\t")
+        merged_df.to_csv(
+            pt / "Gene_list_cut_insertion.tsv", index=False, header=None, sep="\t"
+        )
 
 
 def main() -> None:
