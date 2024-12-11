@@ -7,14 +7,14 @@ def annotation_gdb(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame) -> pd.DataFrame
     # 提取必要列为 NumPy 数组
     gene_start = gene_pos_df[1].to_numpy()
     gene_end = gene_pos_df[2].to_numpy()
-    gRNA_pos = gdb[6].to_numpy()
     gdb_array = gdb.to_numpy()
     gene_pos_array = gene_pos_df.to_numpy()
     gene_pos_len = len(gene_start)
     current_gene_pos_idx = 0
 
     ## 遍历 gRNA <考虑gRNA不同方向时切点位置不同>
-    for g_idx, g_pos in enumerate(gRNA_pos):
+    for g_idx, g_pos_item in enumerate(gdb_array):
+        g_pos = g_pos_item[6]
         # 跳过位于当前基因起始位置之前以及基因间的的 gRNA
         if g_pos < gene_start[current_gene_pos_idx]:
             continue
@@ -32,8 +32,8 @@ def annotation_gdb(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame) -> pd.DataFrame
             # print(f"{g_pos} in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}", flush=True, end="\r")
             # print(f"{g_pos} in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}")
             # g_item = gdb.iloc[g_idx]
-            g_item = gdb_array[g_idx]
-            # print(g_item)
+            # g_pos_item += ["test"]
+            # print(g_pos_item)
             ...
         else:
             print(f"{g_pos} not in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}")
