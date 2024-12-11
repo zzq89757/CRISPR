@@ -5,30 +5,32 @@ import pandas as pd
 def annotation_gdb(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame) -> pd.DataFrame:
     # 需要分别考虑切点和起止 三个位置 超出基因末端时 loc 采用(+/- len(over))
     # 提取必要列为 NumPy 数组
-    gene_start = gene_pos_df[1].to_numpy()
-    gene_end = gene_pos_df[2].to_numpy()
-    gRNA_pos = gdb[6].to_numpy()
+    gene_start_array = gene_pos_df[1].to_numpy()
+    gene_end_array = gene_pos_df[2].to_numpy()
+    gRNA_ori_array = gdb[3].to_numpy()
+    gRNA_pos_array = gdb[6].to_numpy()
     gdb_array = gdb.to_numpy()
     gene_pos_array = gene_pos_df.to_numpy()
-    gene_pos_len = len(gene_start)
+    gene_pos_len = len(gene_start_array)
     current_gene_pos_idx = 0
 
     ## 遍历 gRNA <考虑gRNA不同方向时切点位置不同>
-    for g_idx, g_pos in enumerate(gRNA_pos):
+    for g_idx, g_pos in enumerate(gRNA_pos_array):
+        g_ori = gRNA_ori_array[g_idx]
         # 跳过位于当前基因起始位置之前以及基因间的的 gRNA
-        if g_pos < gene_start[current_gene_pos_idx]:
+        if g_pos < gene_start_array[current_gene_pos_idx]:
             continue
       
         # 跨多个基因时的情况
-        while (current_gene_pos_idx < gene_pos_len -1  and g_pos > gene_end[current_gene_pos_idx]):
+        while (current_gene_pos_idx < gene_pos_len -1  and g_pos > gene_end_array[current_gene_pos_idx]):
             current_gene_pos_idx += 1
         
         # 大于max end时 结束
-        if current_gene_pos_idx == gene_pos_len -1 and g_pos > gene_end[-1]:
+        if current_gene_pos_idx == gene_pos_len -1 and g_pos > gene_end_array[-1]:
             break
         
         # 如果 gRNA 位于当前基因范围内，记录信息 chr1:1335323 跨两个或以上的位点会被跳过
-        if g_pos <= gene_end[current_gene_pos_idx]:
+        if g_pos <= gene_end_array[current_gene_pos_idx]:
             # print(f"{g_pos} in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}", flush=True, end="\r")
             # print(f"{g_pos} in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}")
             # g_item = gdb.iloc[g_idx]
@@ -36,7 +38,7 @@ def annotation_gdb(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame) -> pd.DataFrame
             # print(g_item)
             ...
         else:
-            print(f"{g_pos} not in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}")
+            print(f"{g_pos} not in {gene_start_array[current_gene_pos_idx]}-{gene_end_array[current_gene_pos_idx]}")
 
     return pd.DataFrame([])
 
