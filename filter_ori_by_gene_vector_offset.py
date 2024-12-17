@@ -13,41 +13,44 @@ def annotation_gdb(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame) -> pd.DataFrame
     gene_pos_array = gene_pos_df.to_numpy()
     gene_pos_len = len(gene_start_array)
     current_gene_pos_idx = 0
-
+    max_end = max(gene_end_array)
+    min_start = min(gene_end_array)
     ## 遍历 gRNA <考虑gRNA不同方向时切点位置不同>
-    for g_idx, g_pos in enumerate(gRNA_pos_array):
+    for g_idx, g_raw_pos in enumerate(gRNA_pos_array):
         g_ori = gRNA_ori_array[g_idx]
-        # 不分类考虑正负链的情况 后续过滤掉即可
-        gene_start = gene_start_array[current_gene_pos_idx]
-        gene_end = gene_end_array[current_gene_pos_idx]
+        # 分类考虑正负链的情况
+        g_pos_offset = float(g_ori + "0.5")
+        g_pos = g_raw_pos + g_pos_offset
         # 跳过位于当前基因起始位置之前以及基因间的的 gRNA
-        if g_pos < gene_start:
+        if g_pos < min_start or g_pos > max_end:
             continue
-      
+
         # 跨多个基因时的情况
-        while (current_gene_pos_idx < gene_pos_len -1  and g_pos > gene_end):
-            current_gene_pos_idx += 1
+        # while current_gene_pos_idx < gene_pos_len - 1 and g_pos > gene_end:
+        #     current_gene_pos_idx += 1
+        #     gene_start = gene_start_array[current_gene_pos_idx]
+        #     gene_end = gene_end_array[current_gene_pos_idx]
+
+        # 大于max end时 结束
+        # if current_gene_pos_idx == gene_pos_len - 1 and g_pos > max_end:
+        #     break
+
+        # 如果 gRNA 位于当前基因范围内，记录信息 chr1:1335323 跨两个或以上的位点会被跳过
+        for current_gene_pos_idx in range(gene_pos_len):
             gene_start = gene_start_array[current_gene_pos_idx]
             gene_end = gene_end_array[current_gene_pos_idx]
-        
-        # 大于max end时 结束
-        if current_gene_pos_idx == gene_pos_len -1 and g_pos > gene_end_array[-1]:
-            break
-        
-        # 如果 gRNA 位于当前基因范围内，记录信息 chr1:1335323 跨两个或以上的位点会被跳过
-        if gene_start <= g_pos <= gene_end:
-            # print(f"{g_pos} in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}", flush=True, end="\r")
-            # print(f"{g_pos} in {gene_start}-{gene_end}")
-            # g_item = gdb.iloc[g_idx]
-            g_item = gdb_array[g_idx]
-            # print(g_item)
-            if (g_pos == gene_start and g_ori == "-" and g_pos - 1== gene_end_array[current_gene_pos_idx - 1]) or (g_pos == gene_end and g_ori == "+" and g_pos+ 1== gene_start_array[current_gene_pos_idx + 1]):
-                print(g_item)
-                print(f"{gene_start_array[current_gene_pos_idx - 1]}-{gene_end_array[current_gene_pos_idx - 1]} and {gene_start}-{gene_end} and {gene_start_array[current_gene_pos_idx + 1]}-{gene_end_array[current_gene_pos_idx + 1]}")
-            ...
-        else:
-            # print(f"{g_pos} not in {gene_start}-{gene_end} and {gene_start_array[current_gene_pos_idx - 1]}-{gene_end_array[current_gene_pos_idx - 1]}")
-            ...
+            if gene_start < g_pos < gene_end:
+                # print(f"{g_pos} in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}", flush=True, end="\r")
+                # print(f"{g_pos} in {gene_start}-{gene_end}")
+                # g_item = gdb.iloc[g_idx]
+                g_item = gdb_array[g_idx]
+                # 浮动的切点可能错过子区间间区而不是基因间区
+                if gene_pos_array[current_gene_pos_idx][0].find(",") != -1:
+                    print(g_item)
+                ...
+            else:
+                # print(f"{g_pos} {gene_start_array[current_gene_pos_idx - 1]}-{gene_end_array[current_gene_pos_idx - 1]} and {gene_start}-{gene_end} and {gene_start_array[current_gene_pos_idx + 1]}-{gene_end_array[current_gene_pos_idx + 1]}")
+                ...
 
     return pd.DataFrame([])
 
@@ -64,7 +67,8 @@ def main() -> None:
     type_dict = dict(enumerate(type_li))
     # 读取基因位置信息文件
     gene_pos_df = pd.read_csv(
-        f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/{chr2nc_dict[chr]}/Gene_list_cut_insertion.tsv",
+        # f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/{chr2nc_dict[chr]}/Gene_list_cut_insertion.tsv",
+        f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/{chr2nc_dict[chr]}/Gene_list.tsv",
         sep="\t",
         header=None,
         low_memory=False,
@@ -79,7 +83,12 @@ def main() -> None:
         sep="\t",
         dtype=type_dict
     )
-    # gdb_df = pd.read_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/y_10w.tsv", header=None, sep="\t", dtype=type_dict)
+    # gdb_df = pd.read_csv(
+    #     f"/mnt/ntc_data/wayne/Repositories/CRISPR/y_10w.tsv",
+    #     header=None,
+    #     sep="\t",
+    #     dtype=type_dict,
+    # )
     # gdb 注释
     annotated_df = annotation_gdb(gdb_df, gene_pos_df)
     # 保存为tsv文件

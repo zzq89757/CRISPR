@@ -22,7 +22,7 @@ def async_in_iterable_structure(fun, iterable_structure, cpus):
     # return [result.get() for result in results]
 
 
-def gtf2df(gtf_file: str) -> None:
+def gtf2df(gtf_file: str, nc_no: str) -> pd.DataFrame:
     """提前预设每列的数据类型并将gtf文件存入DataFrame"""
     use_col_li = [0, 2, 3, 4, 6, 8]
     type_li = ["string", "category", "int32", "int32", "category", "string"]
@@ -39,7 +39,7 @@ def gtf2df(gtf_file: str) -> None:
         comment="#",
     )
 
-    return gtf_df
+    return gtf_df[gtf_df[0]==nc_no]
 
 
 def filter_notchr(nc2chr_dict: dict, gtf_df: pd.DataFrame) -> None:
@@ -49,8 +49,13 @@ def filter_notchr(nc2chr_dict: dict, gtf_df: pd.DataFrame) -> None:
 
 def append_gene_id_col(gtf_df: pd.DataFrame) -> None:
     """为gtf添加gene id 和 tran id 列"""
-    gtf_df[9] = gtf_df[8].str.split('"').str[1]
+    # gtf_df[9] = gtf_df[8].str.split('"').str[1]
+    # gtf_df[9] = gtf_df[8].apply(extract_gene_symbol)
+    gtf_df[9] = gtf_df[8].str.extract(r'gene "([^"]+)"')
+    # print(gtf_df[9])
     gtf_df[10] = gtf_df[8].str.split('"').str[3]
+    # gtf_df[10] = gtf_df[8].str.extract(r'transcript_id "([^"]+)"')
+    # print(gtf_df[10])
 
 
 def obtain_gene_id_li(gtf_df: pd.DataFrame) -> defaultdict:
@@ -73,20 +78,21 @@ def obtain_gene_id_li(gtf_df: pd.DataFrame) -> defaultdict:
 
 
 def main() -> None:
+    nc_no = argv[1]
     nc2chr_file = "nc2chr.tsv"
     gtf_file = "GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf"
     # gtf_file = "1w.gtf"
     num_count = Counter()
     info_dict = defaultdict()
     # 读取nc2chr_file 生成 NC -> chr 的映射字典
-    nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
-    nc2chr = dict(zip(nc_df[0], nc_df[1]))
+    # nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
+    # nc2chr = dict(zip(nc_df[0], nc_df[1]))
     # 记录程序开始时间
     t = time.time()
     # 读取gtf文件 生成df
-    gtf_df = gtf2df(gtf_file)
+    gtf_df = gtf2df(gtf_file, nc_no)
     # 过滤非染色体的条目
-    filter_notchr(nc2chr, gtf_df)
+    # filter_notchr(nc2chr, gtf_df)
     # 添加gene id 和tran id列
     append_gene_id_col(gtf_df)
     # 找到coding和uncoding的gene id 列表
@@ -131,7 +137,7 @@ def main() -> None:
                     gene_type_raw = sub_gene_df.iloc[0][8].split('gene_biotype "')[1].split('"')[0]
                     if gene_type_raw not in ["protein_coding", "lncRNA", "ncRNA"]:
                         print(sub_gene_df)
-                    gene_item[11] = "protein coding" if gene_type_raw.find("RNA") == -1 else "non-coding" # type
+                    gene_item[11] = "protein_coding" if gene_type_raw.find("RNA") == -1 else "non_coding" # type
                     # gene_item = gene_item[[9, 10, 3, 4, 6, 11]]
                     a.append(gene_item)
                     append_flag = 0
@@ -148,7 +154,7 @@ def main() -> None:
     # async_in_iterable_structure(cut_gtf,["NC_000001.11","NC_000002.12"],2)
     # for i in ["NC_000001.11","NC_000002.12"]:
     #     cut_gtf(i)arg
-    cut_gtf(argv[1])
+    cut_gtf(nc_no)
 
     # print(num_count)
 
