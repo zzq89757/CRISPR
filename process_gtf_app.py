@@ -68,7 +68,6 @@ def cut_gtf(nc_no, gtf_df, gene_id_li):
     tran_exon_li = pd.DataFrame([])
     tran_cds_li = pd.DataFrame([])
     for gene_name, sub_gene_df in sub_df.groupby(9,sort=False):
-        # print(sub_gene_df)
         append_flag = 1
         # 跳过coding和nc之外的基因
         if gene_name not in gene_id_li:
@@ -85,11 +84,8 @@ def cut_gtf(nc_no, gtf_df, gene_id_li):
                 continue
             # 统计转录本类型数目
             tran_prefix = tran_id.split("_")[0]
-            # num_count[tran_prefix] += 1
             # 选取含NM和NR转录本的gene 创建路径
             if tran_prefix.startswith("N"):
-                # print(tran_id)
-                # a = pd.concat([a,sub_gene_df[[9,3,4,6]].iloc[0]],axis=0)
                 # 处理基因信息
                 if append_flag:
                     gene_item = sub_gene_df[[9, 3, 4, 6]].iloc[0]
@@ -104,7 +100,6 @@ def cut_gtf(nc_no, gtf_df, gene_id_li):
                 
                 # 保存exon 和 cds 信息
                 exon_df = sub_tran_df[sub_tran_df[2]=="exon"][[9, 10, 3, 4]]
-                # print(exon_df)
                 cds_df = sub_tran_df[sub_tran_df[2]=="CDS"][[9, 10, 3, 4]]
                 tran_cds_li = pd.concat([tran_cds_li, cds_df])
                 tran_exon_li = pd.concat([tran_exon_li, exon_df])
@@ -115,19 +110,11 @@ def cut_gtf(nc_no, gtf_df, gene_id_li):
 
 
 def run_cut(nc_no) -> None:
-    # nc_no = argv[1]
-    gtf_file = "GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf"
-    gtf_file = "ZNF568.gtf"
     gtf_file = f"split_gtf/raw_gtf_split/{nc_no}.gtf"
-    # 读取nc2chr_file 生成 NC -> chr 的映射字典
-    # nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
-    # nc2chr = dict(zip(nc_df[0], nc_df[1]))
     # 记录程序开始时间
     t = time.time()
     # 读取gtf文件 生成df
     gtf_df = gtf2df(gtf_file, nc_no)
-    # 过滤非染色体的条目
-    # filter_notchr(nc2chr, gtf_df)
     # 添加gene id 和tran id列
     append_gene_id_col(gtf_df)
     # 找到coding和uncoding的gene id 列表
@@ -143,7 +130,7 @@ def main() -> None:
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     chr_li = ["chr" + str(x) for x in (list(range(1, 23)) + ["X", "Y"])]
-    async_in_iterable_structure(run_cut,nc_li,12)
+    async_in_iterable_structure(run_cut,nc_li,24)
 
 if __name__ == "__main__":
     main()
