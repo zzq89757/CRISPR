@@ -114,9 +114,9 @@ def main() -> None:
         # sub_df = gb.get_group(chr_name)
     # for chr_name, sub_df in gtf_df.groupby(0,sort=False):
         all_gene_li=[]
+        tran_exon_li = pd.DataFrame([])
+        tran_cds_li = pd.DataFrame([])
         for gene_name, sub_gene_df in sub_df.groupby(9,sort=False):
-            tran_exon_li = pd.DataFrame([])
-            tran_cds_li = pd.DataFrame([])
             # print(sub_gene_df)
             append_flag = 1
             # 跳过coding和nc之外的基因
@@ -152,20 +152,15 @@ def main() -> None:
                         append_flag = 0
                     
                     # 保存exon 和 cds 信息
-                    exon_df = sub_tran_df[sub_tran_df[2]=="exon"][[10, 3, 4, 6]]
+                    exon_df = sub_tran_df[sub_tran_df[2]=="exon"][[9, 10, 3, 4]]
                     # print(exon_df)
-                    cds_df = sub_tran_df[sub_tran_df[2]=="CDS"][[10, 3, 4, 6]]
+                    cds_df = sub_tran_df[sub_tran_df[2]=="CDS"][[9, 10, 3, 4]]
                     tran_cds_li = pd.concat([tran_cds_li, cds_df])
                     tran_exon_li = pd.concat([tran_exon_li, exon_df])
-            if len(tran_cds_li): # 若基因有CDS
-                pd.DataFrame(tran_cds_li).to_csv(f"split_gtf/extract/{chr_name}/{gene_name}_cds.tsv",header=None,index=False,sep="\t")
-                # print(tran_cds_li)
-                # print(sub_gene_df)
-                # print(len(tran_cds_li))
-            if len(tran_exon_li): # 若基因有exon
-                pd.DataFrame(tran_exon_li).to_csv(f"split_gtf/extract/{chr_name}/{gene_name}_exon.tsv",header=None,index=False,sep="\t")
-        # 生成只含NM NR 的gene 表
+        # 生成只含NM NR 的 gene表 cds表 和 exon表
         pd.DataFrame(all_gene_li).to_csv(f"split_gtf/extract/{chr_name}/Gene_list.tsv",header=None,index=False,sep="\t")
+        pd.DataFrame(tran_cds_li).to_csv(f"split_gtf/extract/{chr_name}/CDS.tsv",header=None,index=False,sep="\t")
+        pd.DataFrame(tran_exon_li).to_csv(f"split_gtf/extract/{chr_name}/EXON.tsv",header=None,index=False,sep="\t")
     
     # async_in_iterable_structure(cut_gtf,["NC_000001.11","NC_000002.12"],2)
     # for i in ["NC_000001.11","NC_000002.12"]:
