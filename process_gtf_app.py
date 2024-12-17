@@ -25,7 +25,7 @@ def async_in_iterable_structure(fun, iterable_structure, cpus):
 def gtf2df(gtf_file: str, nc_no: str) -> pd.DataFrame:
     """提前预设每列的数据类型并将gtf文件存入DataFrame"""
     use_col_li = [0, 2, 3, 4, 6, 8]
-    type_li = ["string", "category", "int32", "int32", "category", "string"]
+    type_li = ["category", "category", "int32", "int32", "category", "string"]
 
     type_dict = dict(zip(use_col_li, type_li))
 
@@ -35,7 +35,7 @@ def gtf2df(gtf_file: str, nc_no: str) -> pd.DataFrame:
         header=None,
         usecols=use_col_li,
         dtype=type_dict,
-        low_memory=False,
+        # low_memory=False,
         comment="#",
     )
 
@@ -81,7 +81,7 @@ def main() -> None:
     nc_no = argv[1]
     nc2chr_file = "nc2chr.tsv"
     gtf_file = "GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf"
-    # gtf_file = "1w.gtf"
+    gtf_file = "ZNF568.gtf"
     num_count = Counter()
     info_dict = defaultdict()
     # 读取nc2chr_file 生成 NC -> chr 的映射字典
@@ -122,25 +122,28 @@ def main() -> None:
                 continue
             # 记录基因信息
             for tran_id, sub_tran_df in sub_gene_df.groupby(10,sort=False):
-                # 跳过基因行
+                # print(sub_tran_df)
+                # 跳过基因行(基因行的转录本 id 为空 分组后仅一行)
                 if len(sub_tran_df) == 1:
                     continue
                 # 统计转录本类型数目
                 tran_prefix = tran_id.split("_")[0]
                 num_count[tran_prefix] += 1
                 # 选取含NM和NR转录本的gene 创建路径
-                if tran_prefix.startswith("N") and append_flag:
+                if tran_prefix.startswith("N"):
+                    # print(tran_id)
                     # a = pd.concat([a,sub_gene_df[[9,3,4,6]].iloc[0]],axis=0)
                     # 处理基因信息
-                    gene_item = sub_gene_df[[9, 3, 4, 6]].iloc[0]
-                    gene_item[10] = sub_gene_df.iloc[0][8].split('GeneID:')[1].split('"')[0] # ID
-                    gene_type_raw = sub_gene_df.iloc[0][8].split('gene_biotype "')[1].split('"')[0]
-                    if gene_type_raw not in ["protein_coding", "lncRNA", "ncRNA"]:
-                        print(sub_gene_df)
-                    gene_item[11] = "protein_coding" if gene_type_raw.find("RNA") == -1 else "non_coding" # type
-                    # gene_item = gene_item[[9, 10, 3, 4, 6, 11]]
-                    a.append(gene_item)
-                    append_flag = 0
+                    if append_flag:
+                        gene_item = sub_gene_df[[9, 3, 4, 6]].iloc[0]
+                        gene_item[10] = sub_gene_df.iloc[0][8].split('GeneID:')[1].split('"')[0] # ID
+                        gene_type_raw = sub_gene_df.iloc[0][8].split('gene_biotype "')[1].split('"')[0]
+                        if gene_type_raw not in ["protein_coding", "lncRNA", "ncRNA"]:
+                            print(sub_gene_df)
+                        gene_item[11] = "protein_coding" if gene_type_raw.find("RNA") == -1 else "non_coding" # type
+                        # gene_item = gene_item[[9, 10, 3, 4, 6, 11]]
+                        a.append(gene_item)
+                        append_flag = 0
                     
                     # 保存exon 和 cds 信息
                     exon_df = sub_tran_df[sub_tran_df[2]=="exon"]
