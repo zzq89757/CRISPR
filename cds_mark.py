@@ -111,7 +111,7 @@ def mark_cds(gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file: str) -> No
     # 提取所需列并矢量化计算
     gdb_ori_array = gdb_df[4].astype(str) + "0.5"
     gdb_cut_pos_array = gdb_df[7].to_numpy()
-    gdb_gene_name_array = gdb_df[8].to_numpy()
+    gdb_gene_type_array = gdb_df[10].to_numpy()
     gdb_array = gdb_df.to_numpy()
     
     gene_start_array = cds_df[1].to_numpy()
@@ -139,7 +139,7 @@ def mark_cds(gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file: str) -> No
         #     res_count += 1
         gene_start = gene_start_array[current_gene_pos_idx]
         gene_end = gene_end_array[current_gene_pos_idx]
-        if g_pos < gene_start or g_pos > gene_end_array[-1]:
+        if  gdb_gene_type_array[g_idx] == "non_coding" or g_pos < gene_start or g_pos > gene_end_array[-1]:
             print("\t".join(str(x) for x in gdb_array[g_idx]),end="\t",file=output_handle)
             print("no",end="\n",file=output_handle)
             continue
@@ -163,11 +163,12 @@ def mark_cds(gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file: str) -> No
             for j in range(current_gene_pos_idx, scaffold_pos_li[current_scaffold_pos_idx][1] + 1):
                 # if gene_start_array[j] < g_pos < gene_end_array[j]:
                 if gene_start_array[j] < g_pos < gene_end_array[j]:
-                    fall_flag = 1
-                    print("\t".join(str(x) for x in gdb_array[g_idx]),end="\t",file=output_handle)
-                    # print(exon_array[current_gene_pos_idx][2],end="\t",file=output_handle)
-                    # print(exon_array[current_gene_pos_idx][3],end="\n",file=output_handle)
-                    print("yes",end="\n",file=output_handle)
+                    if gdb_array[g_idx][8] == exon_array[j][0]:
+                        fall_flag = 1
+                        print("\t".join(str(x) for x in gdb_array[g_idx]),end="\t",file=output_handle)
+                        # print(exon_array[current_gene_pos_idx][2],end="\t",file=output_handle)
+                        # print(exon_array[current_gene_pos_idx][3],end="\n",file=output_handle)
+                        print("yes",end="\n",file=output_handle)
                     break
             
             if fall_flag == 0:
@@ -178,14 +179,19 @@ def mark_cds(gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file: str) -> No
         
         # 如果 gRNA 位于当前基因范围内，记录信息 chr1:1335323 跨两个或以上的位点会被跳过
         if gene_start < g_pos < gene_end:
+            
             # print(f"{g_pos} in {gene_start[current_gene_pos_idx]}-{gene_end[current_gene_pos_idx]}", flush=True, end="\r")
             # print(f"{g_pos} in {gene_start}-{gene_end}")
             # g_item = gdb.iloc[g_idx]
             # g_item = gdb_array[g_idx]
-            print("\t".join(str(x) for x in gdb_array[g_idx]),end="\t",file=output_handle)
-            # print(exon_array[current_gene_pos_idx][2],end="\t",file=output_handle)
-            # print(exon_array[current_gene_pos_idx][3],end="\n",file=output_handle)
-            print("yes",end="\n",file=output_handle)
+            if gdb_array[g_idx][8] == exon_array[current_gene_pos_idx][0]:
+                print("\t".join(str(x) for x in gdb_array[g_idx]),end="\t",file=output_handle)
+                # print(exon_array[current_gene_pos_idx][2],end="\t",file=output_handle)
+                # print(exon_array[current_gene_pos_idx][3],end="\n",file=output_handle)
+                print("yes",end="\n",file=output_handle)
+            else:
+                print("\t".join(str(x) for x in gdb_array[g_idx]),end="\t",file=output_handle)
+                print("no",end="\n",file=output_handle)
             #     print(gdb_array[g_idx][8],end="\t")
             #     print(exon_array[current_gene_pos_idx][0],end="\t")
             #     print(g_pos)
@@ -215,7 +221,7 @@ def run_mark(nc_no) -> None:
     cds_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/NC_000024.10/CDS.tsv"
     cds_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/CDS.tsv"
     cds_df = region2df(cds_file)
-    
+    # cds_df.to_csv("./nc22.cds",header=None,sep="\t")
     # mark_cds(gdb_df,cds_df,"/mnt/ntc_data/wayne/Repositories/CRISPR/cds_mark/NC_000024.10.tsv")
     mark_cds(gdb_df,cds_df,f"/mnt/ntc_data/wayne/Repositories/CRISPR/cds_mark/{nc_no}.tsv")
     memory_info = process.memory_info()
@@ -231,6 +237,7 @@ def main() -> None:
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     async_in_iterable_structure(run_mark,nc_li,24)
+    # run_mark(nc_li[21])
     
     
 
