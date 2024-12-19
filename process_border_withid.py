@@ -1,8 +1,23 @@
-from sys import argv
 import time
 import pandas as pd
-from json import dump
+from sys import argv, path
+from multiprocessing import Pool, RLock
+path.append("/mnt/ntc_data/wayne/Repositories/CRISPR/")
 
+# from generate_split_ori import async_in_iterable_structure
+
+def async_in_iterable_structure(fun, iterable_structure, cpus):
+    def init(l):
+        global lock
+        lock = l
+
+    lock = RLock()
+    p = Pool(int(cpus), initializer=init, initargs=(lock,))
+    # apply async in iterable structure
+    for i in iterable_structure:
+        p.apply_async(func=fun, args=(i,))
+    p.close()
+    p.join()
 
 # 找出重叠区域的起始终止索引
 def scaffold_detective(gene_pos_df: pd.DataFrame) -> list:
@@ -151,10 +166,11 @@ def gdb_annotation(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame, scaffold_pos_li
     # max_end = max(gene_end_array)
     # min_start = min(gene_end_array)
     ## 遍历 gRNA <考虑gRNA不同方向时切点位置不同>
+    gdb_ori_offset_array = gdb[4].astype(str) + "0.5"
+    gRNA_offset_pos_array = gRNA_pos_array + gdb_ori_offset_array.astype(float)
     for g_idx, g_raw_pos in enumerate(gRNA_pos_array):
         g_ori = gRNA_ori_array[g_idx]
-        g_pos_offset = float(g_ori + "0.5")
-        g_pos = g_raw_pos + g_pos_offset
+        g_pos = gRNA_offset_pos_array[g_idx]
         # 不分类考虑正负链的情况 后续过滤掉即可
         gene_start = gene_start_array[current_gene_pos_idx]
         gene_end = gene_end_array[current_gene_pos_idx]
@@ -176,7 +192,7 @@ def gdb_annotation(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame, scaffold_pos_li
             break
         
         # 处于scaffold中的gRNA处理
-        if current_scaffold_pos_idx < scaffold_pos_len and current_scaffold_pos_idx < scaffold_pos_li[current_scaffold_pos_idx][0] <= current_gene_pos_idx <= scaffold_pos_li[current_scaffold_pos_idx][1]:
+        if current_scaffold_pos_idx < scaffold_pos_len and scaffold_pos_li[current_scaffold_pos_idx][0] <= current_gene_pos_idx <= scaffold_pos_li[current_scaffold_pos_idx][1]:
             for j in range(current_gene_pos_idx, scaffold_pos_li[current_scaffold_pos_idx][1] + 1):
                 if gene_start_array[j] < g_pos < gene_end_array[j]:
                     print("\t".join(str(x) for x in gdb_array[g_idx]),end="\t",file=output_handle)
@@ -227,11 +243,11 @@ def gdb_annotation(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame, scaffold_pos_li
 
 
 
-def main() -> None:
+def run(chr) -> None:
     t1 = time.time()
     nc_no = "NC_000024.10"
     # chr = "chr12"
-    chr = argv[1]
+    # chr = i
 
     nc_table = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     df = pd.read_csv(nc_table, sep="\t", header=None)
@@ -240,7 +256,7 @@ def main() -> None:
     type_dict = dict(enumerate(type_li))
     # 读取基因位置信息文件
     gene_pos_df = pd.read_csv(
-        f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/{chr2nc_dict[chr]}/Gene_list.tsv",
+        f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{chr2nc_dict[chr]}/Gene_list.tsv",
         sep="\t",
         header=None,
         # low_memory=False,
@@ -267,11 +283,13 @@ def main() -> None:
     print(f"find insertion, time cost:{time.time() - t2}")
     # print(sccaffold_pos_li)
     # 同时遍历gdb和gtf 为gdb条目添加基因注释
-    gdb_annotation(gdb_df, gene_pos_df, sccaffold_pos_li, f"/mnt/ntc_data/wayne/Repositories/CRISPR/gene_annotation/spCas9_Homo_{chr}.tsv")
+    gdb_annotation(gdb_df, gene_pos_df, sccaffold_pos_li, f"/mnt/ntc_data/wayne/Repositories/CRISPR/gene_annotation_re/spCas9_Homo_{chr}.tsv")
     
     print(f"annotation,time cost:{time.time() - t2}")
-    
-    
-    
+
+def main() -> None:
+    # chr_li = ["chr" + str(x) for x in (list(range(1, 23)) + ["X", "Y"])]
+    # async_in_iterable_structure(run,chr_li,6)
+    run(argv[1])
 if __name__ == "__main__":
     main()
