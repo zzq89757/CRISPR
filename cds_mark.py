@@ -1,10 +1,16 @@
+from multiprocessing import process
+import os
+import time
 import pandas as pd
 from sys import path
-
+import psutil
 path.append("/mnt/ntc_data/wayne/Repositories/CRISPR/")
 
 
+
+
 from process_border_withid import scaffold_detective_numpy
+from generate_split_ori import async_in_iterable_structure
 from filter_intron import  region2df
 
 
@@ -99,7 +105,7 @@ def mark_cds(gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file: str) -> No
     cds_df = common_cds_front_region(cds_df)
     cds_df.columns = [0,4,1,2]
     scaffold_pos_li = scaffold_detective_numpy(cds_df)
-    print(scaffold_pos_li)
+    # print(scaffold_pos_li)
     # cds_df.to_csv("cdsp.tsv",sep="\t",header=None,index=False)
     exon_array = cds_df.to_numpy()
     # 提取所需列并矢量化计算
@@ -198,20 +204,35 @@ def mark_cds(gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file: str) -> No
 
     
     
-def run_mark() -> None:
+def run_mark(nc_no) -> None:
+    t1 = time.time()
+    print(f"{nc_no} mark cds start !!!")
+    process = psutil.Process(os.getpid())
     gdb_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/exon_filter/NC_000024.10.tsv"
+    gdb_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/exon_filter/{nc_no}.tsv"
     gdb_df = gdb2df(gdb_file)
     # 读取对应的CDS exon 表
     cds_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/NC_000024.10/CDS.tsv"
+    cds_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/CDS.tsv"
     cds_df = region2df(cds_file)
     
-    mark_cds(gdb_df,cds_df,"mkt.tsv")
+    # mark_cds(gdb_df,cds_df,"/mnt/ntc_data/wayne/Repositories/CRISPR/cds_mark/NC_000024.10.tsv")
+    mark_cds(gdb_df,cds_df,f"/mnt/ntc_data/wayne/Repositories/CRISPR/cds_mark/{nc_no}.tsv")
+    memory_info = process.memory_info()
+    peak_memory_gb = memory_info.peak_wset / (1024**3) if hasattr(memory_info, 'peak_wset') else memory_info.rss / (1024**3)
+
+    print(f"峰值内存使用: {peak_memory_gb:.2f} GB")
+    print(f"{nc_no} mark cds time cost:{time.time() - t1}")
 
 
 
 def main() -> None:
-    run_mark()
-
+    nc2chr_file = "nc2chr.tsv"
+    nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
+    nc_li = nc_df[0].tolist()
+    async_in_iterable_structure(run_mark,nc_li,24)
+    
+    
 
 if __name__ == "__main__":
     main()

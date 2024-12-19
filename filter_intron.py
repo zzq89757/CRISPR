@@ -182,7 +182,7 @@ def run_filter(nc_no: str) -> None:
     # 读取gdb
     gdb_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/gene_annotation/spCas9_Homo_chrY.tsv"
     gdb_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/gene_annotation/spCas9_Homo_chr1.tsv"
-    gdb_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/gene_annotation/spCas9_Homo_{nc2chr_dict[nc_no]}.tsv"
+    gdb_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/gene_annotation_re/spCas9_Homo_{nc2chr_dict[nc_no]}.tsv"
     gdb_df = gdb2df(gdb_file)
     # gdb_df = pd.DataFrame([])
     # 读取对应的exon表
@@ -207,7 +207,8 @@ def main():
     nc2chr_file = "nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    async_in_iterable_structure(run_filter,nc_li,8)
+    # async_in_iterable_structure(run_filter,nc_li,8)
+    run_filter(nc_li[6])
 
 if __name__ == "__main__":
     main()
