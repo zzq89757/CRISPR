@@ -59,7 +59,7 @@ def obtain_gene_id_li(gtf_df: pd.DataFrame) -> defaultdict:
     return gene_id_li
 
 
-def cut_gtf(nc_no, gtf_df, gene_id_li) -> None:
+def cut_gtf(nc_no: str, gtf_df: pd.DataFrame, gene_id_li: list) -> None:
     # 挑出N开头的转录本和基因行(非X开头行)
     sub_df = gtf_df[~gtf_df[10].str.startswith("X")]
     chr_name = nc_no
@@ -103,7 +103,7 @@ def cut_gtf(nc_no, gtf_df, gene_id_li) -> None:
     pd.DataFrame(tran_exon_li).to_csv(f"split_gtf/extract/{chr_name}/EXON.tsv",header=None,index=False,sep="\t")
 
 
-def run_cut(nc_no) -> None:
+def run_cut(nc_no: str) -> None:
     gtf_file = f"split_gtf/raw_gtf_split/{nc_no}.gtf"
     # 记录程序开始时间
     t = time.time()
