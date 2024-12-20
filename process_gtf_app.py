@@ -1,12 +1,11 @@
 import time
 import pandas as pd
-from collections import defaultdict, Counter
+from collections import defaultdict
 from pathlib import Path
 from multiprocessing import Pool, RLock
-from sys import argv
 
-def async_in_iterable_structure(fun, iterable_structure, cpus):
-    def init(l):
+def async_in_iterable_structure(fun, iterable_structure, cpus) -> None:
+    def init(l) -> None:
         global lock
         lock = l
 
@@ -60,54 +59,48 @@ def obtain_gene_id_li(gtf_df: pd.DataFrame) -> defaultdict:
     return gene_id_li
 
 
-def cut_gtf(nc_no, gtf_df, gene_id_li):
-    sub_df = gtf_df[gtf_df[0]==nc_no]
+def cut_gtf(nc_no, gtf_df, gene_id_li) -> None:
+    # 挑出N开头的转录本和基因行(非X开头行)
+    sub_df = gtf_df[~gtf_df[10].str.startswith("X")]
     chr_name = nc_no
     Path(f"split_gtf/extract/{chr_name}").mkdir(exist_ok=1,parents=1)
     all_gene_li=[]
     tran_exon_li = pd.DataFrame([])
     tran_cds_li = pd.DataFrame([])
-    gene_tran_li = pd.DataFrame([])
+    gene_tran_li = []
     for gene_name, sub_gene_df in sub_df.groupby(9,sort=False):
-        append_flag = 1
         # 跳过coding和nc之外的基因
         if gene_name not in gene_id_li:
             continue
-        # 跳过没有转录本的基因
+        # 跳过没有NX or NM转录本的基因
         if len(sub_gene_df) == 1:
-            print(f"{gene_name} has no transcript found !!!")
+            print(f"{gene_name} has no NX or NM transcript found !!!")
             continue
         # 记录基因信息
+        gene_item = sub_gene_df[[9, 3, 4, 6]].iloc[0]
+        gene_item[10] = sub_gene_df.iloc[0][8].split('GeneID:')[1].split('"')[0] # ID
+        gene_type_raw = sub_gene_df.iloc[0][8].split('gene_biotype "')[1].split('"')[0]
+        gene_item[11] = "protein_coding" if gene_type_raw.find("RNA") == -1 else "non_coding" # type
+        all_gene_li.append(gene_item)
+        # 遍历按照转录本分类的子表（基因行的转录本id为空且只有一行）
         for tran_id, sub_tran_df in sub_gene_df.groupby(10,sort=False):
             # print(sub_tran_df)
             # 跳过基因行(基因行的转录本 id 为空 分组后仅一行)
             if len(sub_tran_df) == 1:
                 continue
-            # 统计转录本类型数目
-            tran_prefix = tran_id.split("_")[0]
-            # 选取含NM和NR转录本的gene 创建路径
-            if tran_prefix.startswith("N"): #  此处可以在添加基因和转录本信息后直接过滤
-                # 处理基因信息
-                if append_flag:
-                    gene_item = sub_gene_df[[9, 3, 4, 6]].iloc[0]
-                    gene_item[10] = sub_gene_df.iloc[0][8].split('GeneID:')[1].split('"')[0] # ID
-                    gene_type_raw = sub_gene_df.iloc[0][8].split('gene_biotype "')[1].split('"')[0]
-                    if gene_type_raw not in ["protein_coding", "lncRNA", "ncRNA"]:
-                        print(sub_gene_df)
-                    gene_item[11] = "protein_coding" if gene_type_raw.find("RNA") == -1 else "non_coding" # type
-                    # gene_item = gene_item[[9, 10, 3, 4, 6, 11]]
-                    all_gene_li.append(gene_item)
-                    append_flag = 0
-                
-                # 保存exon 和 cds 信息
-                exon_df = sub_tran_df[sub_tran_df[2]=="exon"][[9, 10, 3, 4]]
-                cds_df = sub_tran_df[sub_tran_df[2]=="CDS"][[9, 10, 3, 4]]
-                tran_cds_li = pd.concat([tran_cds_li, cds_df])
-                tran_exon_li = pd.concat([tran_exon_li, exon_df])
+            # 保存转录本信息
+            tran_df = sub_tran_df[[9, 10, 3, 4]].iloc[0]
+            gene_tran_li.append(tran_df)
+            # 保存exon 和 cds 信息
+            exon_df = sub_tran_df[sub_tran_df[2]=="exon"][[9, 10, 3, 4]]
+            cds_df = sub_tran_df[sub_tran_df[2]=="CDS"][[9, 10, 3, 4]]
+            tran_cds_li = pd.concat([tran_cds_li, cds_df])
+            tran_exon_li = pd.concat([tran_exon_li, exon_df])
     # 生成只含NM NR 的 gene表 cds表 和 exon表
-    pd.DataFrame(all_gene_li).to_csv(f"split_gtf/extract/{chr_name}/Gene_list_re.tsv",header=None,index=False,sep="\t")
-    pd.DataFrame(tran_cds_li).to_csv(f"split_gtf/extract/{chr_name}/CDS_re.tsv",header=None,index=False,sep="\t")
-    pd.DataFrame(tran_exon_li).to_csv(f"split_gtf/extract/{chr_name}/EXON_re.tsv",header=None,index=False,sep="\t")
+    pd.DataFrame(all_gene_li).to_csv(f"split_gtf/extract/{chr_name}/Gene_list.tsv",header=None,index=False,sep="\t")
+    pd.DataFrame(gene_tran_li).to_csv(f"split_gtf/extract/{chr_name}/TRAN.tsv",header=None,index=False,sep="\t")
+    pd.DataFrame(tran_cds_li).to_csv(f"split_gtf/extract/{chr_name}/CDS.tsv",header=None,index=False,sep="\t")
+    pd.DataFrame(tran_exon_li).to_csv(f"split_gtf/extract/{chr_name}/EXON.tsv",header=None,index=False,sep="\t")
 
 
 def run_cut(nc_no) -> None:
@@ -131,8 +124,8 @@ def main() -> None:
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     chr_li = ["chr" + str(x) for x in (list(range(1, 23)) + ["X", "Y"])]
-    # async_in_iterable_structure(run_cut,nc_li,24)
-    run_cut(chr_li[-1])
+    async_in_iterable_structure(run_cut,nc_li,24)
+    # run_cut(nc_li[-1])
 
 if __name__ == "__main__":
     main()

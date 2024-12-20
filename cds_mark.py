@@ -88,7 +88,7 @@ def common_cds_front_region(cds_df: pd.DataFrame) -> pd.DataFrame:
         # 查看结果
         new_res = pd.concat([new_res, result_df])
     new_res = new_res.sort_values("CDS_start")
-    new_res.to_csv("cdt.tsv",header=None,index=False,sep="\t")
+    # new_res.to_csv("cdt.tsv",header=None,index=False,sep="\t")
     # print(new_res)
     return new_res
 
