@@ -67,6 +67,7 @@ def cut_gtf(nc_no, gtf_df, gene_id_li):
     all_gene_li=[]
     tran_exon_li = pd.DataFrame([])
     tran_cds_li = pd.DataFrame([])
+    gene_tran_li = pd.DataFrame([])
     for gene_name, sub_gene_df in sub_df.groupby(9,sort=False):
         append_flag = 1
         # 跳过coding和nc之外的基因
@@ -85,7 +86,7 @@ def cut_gtf(nc_no, gtf_df, gene_id_li):
             # 统计转录本类型数目
             tran_prefix = tran_id.split("_")[0]
             # 选取含NM和NR转录本的gene 创建路径
-            if tran_prefix.startswith("N"):
+            if tran_prefix.startswith("N"): #  此处可以在添加基因和转录本信息后直接过滤
                 # 处理基因信息
                 if append_flag:
                     gene_item = sub_gene_df[[9, 3, 4, 6]].iloc[0]
@@ -104,9 +105,9 @@ def cut_gtf(nc_no, gtf_df, gene_id_li):
                 tran_cds_li = pd.concat([tran_cds_li, cds_df])
                 tran_exon_li = pd.concat([tran_exon_li, exon_df])
     # 生成只含NM NR 的 gene表 cds表 和 exon表
-    pd.DataFrame(all_gene_li).to_csv(f"split_gtf/extract/{chr_name}/Gene_list.tsv",header=None,index=False,sep="\t")
-    pd.DataFrame(tran_cds_li).to_csv(f"split_gtf/extract/{chr_name}/CDS.tsv",header=None,index=False,sep="\t")
-    pd.DataFrame(tran_exon_li).to_csv(f"split_gtf/extract/{chr_name}/EXON.tsv",header=None,index=False,sep="\t")
+    pd.DataFrame(all_gene_li).to_csv(f"split_gtf/extract/{chr_name}/Gene_list_re.tsv",header=None,index=False,sep="\t")
+    pd.DataFrame(tran_cds_li).to_csv(f"split_gtf/extract/{chr_name}/CDS_re.tsv",header=None,index=False,sep="\t")
+    pd.DataFrame(tran_exon_li).to_csv(f"split_gtf/extract/{chr_name}/EXON_re.tsv",header=None,index=False,sep="\t")
 
 
 def run_cut(nc_no) -> None:
@@ -130,7 +131,8 @@ def main() -> None:
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     chr_li = ["chr" + str(x) for x in (list(range(1, 23)) + ["X", "Y"])]
-    async_in_iterable_structure(run_cut,nc_li,24)
+    # async_in_iterable_structure(run_cut,nc_li,24)
+    run_cut(chr_li[-1])
 
 if __name__ == "__main__":
     main()
