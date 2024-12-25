@@ -64,9 +64,9 @@ def scaffold_detective(gene_pos_df: pd.DataFrame) -> list:
     return terminal_common_idx_li
 
 # 找出重叠区域的起始终止索引
-def scaffold_detective_numpy(gene_pos_df: pd.DataFrame) -> list:
-    gene_start_array = gene_pos_df[1].to_numpy()
-    gene_end_array = gene_pos_df[2].to_numpy()
+def scaffold_detective_numpy(gene_pos_df: pd.DataFrame, start_col_idx: int=1, end_col_idx: int=2) -> list:
+    gene_start_array = gene_pos_df[start_col_idx].to_numpy()
+    gene_end_array = gene_pos_df[end_col_idx].to_numpy()
     common_idx_li = []
     terminal_common_idx_li = []
     for i in range(len(gene_start_array) - 1):
