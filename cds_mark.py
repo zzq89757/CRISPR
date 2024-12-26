@@ -31,31 +31,8 @@ def gdb2df(gdb_path: str) -> pd.DataFrame:
     return gdb_df
 
 
-
-
-def merge_tran_exon(df: pd.DataFrame) -> pd.DataFrame:
-    df.columns = ["Gene", "Transcript", "Start", "End", "Exon"]
-    # 为每个 `[Start, End]` 分配唯一组号
-    df['Group'] = df.groupby(['Gene', 'Start', 'End']).ngroup() + 1
-
-    # 转录本和 Exon 合并
-    df['Transcript_Exon'] = df['Transcript'] + '#' + df['Exon'].astype(str)
-
-    # 按组聚合数据
-    grouped_df = df.groupby('Group').agg({
-        'Gene': 'first',  # 每组基因取第一个
-        'Start': 'first',  # 每组起始位置取第一个
-        'End': 'first',    # 每组结束位置取第一个
-        'Transcript_Exon': lambda x: ';'.join(x)  # 转录本#外显子编号以分号分隔
-    }).reset_index(drop=True)
-    grouped_df = grouped_df.sort_values("Start")
-    grouped_df.columns = [0,1,2,3]
-    # 查看结果
-    # print(grouped_df)
-    return grouped_df
-
-
 def common_cds_front_region(cds_df: pd.DataFrame) -> pd.DataFrame:
+    # 找到所有转录本对应CDS的前2/3后取并集 注意方向!!!
     new_res = pd.DataFrame([])
     cds_df.columns = ["Gene", "Transcript", "CDS_start", "CDS_end"]
     # 按照转录本分组
@@ -88,7 +65,7 @@ def common_cds_front_region(cds_df: pd.DataFrame) -> pd.DataFrame:
         # 查看结果
         new_res = pd.concat([new_res, result_df])
     new_res = new_res.sort_values("CDS_start")
-    # new_res.to_csv("cdt.tsv",header=None,index=False,sep="\t")
+    new_res.to_csv("cdt.tsv",header=None,index=False,sep="\t")
     # print(new_res)
     return new_res
 
@@ -236,8 +213,8 @@ def main() -> None:
     nc2chr_file = "nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    async_in_iterable_structure(run_mark,nc_li,24)
-    # run_mark(nc_li[21])
+    # async_in_iterable_structure(run_mark,nc_li,24)
+    run_mark(nc_li[21])
     
     
 
