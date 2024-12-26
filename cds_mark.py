@@ -17,9 +17,7 @@ from filter_intron import  region2df
 
 def gdb2df(gdb_path: str) -> pd.DataFrame:
     type_li = ["int32", "string", "category", "category", "category", "int32", "int32", "int32", "string", "int32", "category", "category", "string", "int32", "string"]
-
     type_dict = dict(enumerate(type_li))
-
     gdb_df = pd.read_csv(
         gdb_path,
         sep="\t",
@@ -27,8 +25,12 @@ def gdb2df(gdb_path: str) -> pd.DataFrame:
         dtype=type_dict,
         # low_memory=False,
     )
-    # print(gdb_df)
     return gdb_df
+
+
+def gene_ori_dict(nc_no: str) -> dict:
+    gene_df: pd.DataFrame = pd.read_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/Gene_list.tsv",sep="\t",header=None)
+    return dict(zip(gene_df[0], gene_df[3]))
 
 
 def common_cds_front_region(cds_df: pd.DataFrame) -> pd.DataFrame:
