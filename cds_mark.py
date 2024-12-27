@@ -33,7 +33,7 @@ def gene_ori_dict(nc_no: str) -> dict:
     return dict(zip(gene_df[0], gene_df[3]))
 
 
-def common_cds_front_region(cds_df: pd.DataFrame, gene_ori_dict: dict) -> pd.DataFrame:
+def common_cds_front_region(cds_df: pd.DataFrame, gene_ori_dict: dict, nc_no: str) -> pd.DataFrame:
     # 找到所有转录本对应CDS的前2/3后取并集 注意方向!!!
     new_res = pd.DataFrame([])
     cds_df.columns = ["Gene", "Transcript", "CDS_start", "CDS_end"]
@@ -71,8 +71,8 @@ def common_cds_front_region(cds_df: pd.DataFrame, gene_ori_dict: dict) -> pd.Dat
         result_df = pd.DataFrame(result, columns=["Gene", "Transcript", "CDS_start", "CDS_end"])
         # 查看结果
         new_res = pd.concat([new_res, result_df])
+    new_res.to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/cds_mark/{nc_no}_region.tsv",header=None,index=False,sep="\t")
     new_res = new_res.sort_values("CDS_start")
-    # new_res.to_csv("cdt.tsv",header=None,index=False,sep="\t")
     # print(new_res)
     return new_res
 
@@ -88,7 +88,7 @@ def mark_cds(nc_no: str, gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file
     # cds_df = cds_df.sort_values(2)
     ori_dict = gene_ori_dict(nc_no)
     
-    cds_df = common_cds_front_region(cds_df, ori_dict)
+    cds_df = common_cds_front_region(cds_df, ori_dict, nc_no)
     cds_df.columns = [0,4,1,2]
     scaffold_pos_li = scaffold_detective_numpy(cds_df)
     # print(scaffold_pos_li)
@@ -222,8 +222,8 @@ def main() -> None:
     nc2chr_file = "nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    # async_in_iterable_structure(run_mark,nc_li,24)
-    run_mark(nc_li[0])
+    async_in_iterable_structure(run_mark,nc_li,24)
+    # run_mark(nc_li[0])
     
     
 

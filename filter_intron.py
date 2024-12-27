@@ -42,13 +42,14 @@ def region2df(region_file: str) -> pd.DataFrame:
     return region_df
 
 
-def merge_tran_exon(df: pd.DataFrame) -> pd.DataFrame:
+def merge_tran_exon(df: pd.DataFrame, nc_no: str) -> pd.DataFrame:
     df.columns = ["Gene", "Transcript", "Start", "End", "Exon"]
     # 为每个 `[Start, End]` 分配唯一组号
+    # print(df[df["Gene"]=="GTPBP6"])
     df['Group'] = df.groupby(['Gene', 'Start', 'End']).ngroup() + 1
-
     # 转录本和 Exon 合并
     df['Transcript_Exon'] = df['Transcript'] + '#' + df['Exon'].astype(str)
+    # df.to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/exon_filter/{nc_no}_region.tsv",header=None,index=False,sep="\t")
 
     # 按组聚合数据
     grouped_df = df.groupby('Group').agg({
@@ -57,6 +58,7 @@ def merge_tran_exon(df: pd.DataFrame) -> pd.DataFrame:
         'End': 'first',    # 每组结束位置取第一个
         'Transcript_Exon': lambda x: ';'.join(x)  # 转录本#外显子编号以分号分隔
     }).reset_index(drop=True)
+    # grouped_df.to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/exon_filter/{nc_no}_region.tsv",header=None,index=False,sep="\t")
     grouped_df = grouped_df.sort_values("Start")
     grouped_df.columns = [0,1,2,3]
     # 查看结果
@@ -64,19 +66,19 @@ def merge_tran_exon(df: pd.DataFrame) -> pd.DataFrame:
     return grouped_df
 
 
-def filter_intron(gdb_df: pd.DataFrame, exon_df: pd.DataFrame, output_file: str) -> None:
+def filter_intron(nc_no :str, gdb_df: pd.DataFrame, exon_df: pd.DataFrame, output_file: str) -> None:
     # output_file = "exon_filter/exu.tsv"
     output_handle = open(output_file,'w')
     
     # 根据gdb 的基因和切点 找到cut的转录本、外显子以及cds并集前2/3位置
-    group_order = pd.Categorical(exon_df[1], categories=exon_df[1].unique(), ordered=True)
-    exon_df = exon_df.sort_values(by=[2, 3], key=lambda col: group_order if col.name == 2 else col)
+    # group_order = pd.Categorical(exon_df[1], categories=exon_df[1].unique(), ordered=True)
+    # exon_df = exon_df.sort_values(by=[2, 3], key=lambda col: group_order if col.name == 2 else col)
     exon_df[4] = exon_df.groupby(1).cumcount() + 1
-    exon_df = exon_df.sort_values(2)
-    exon_df = merge_tran_exon(exon_df)
+    # exon_df = exon_df.sort_values(2)
+    exon_df = merge_tran_exon(exon_df, nc_no)
     scaffold_pos_li = scaffold_detective_numpy(exon_df)
     # print(scaffold_pos_li)
-    exon_df.to_csv("exp.tsv",sep="\t",header=None,index=False)
+    # exon_df.to_csv("exp.tsv",sep="\t",header=None,index=False)
     exon_array = exon_df.to_numpy()
     # 提取所需列并矢量化计算
     gdb_ori_array = gdb_df[4].astype(str) + "0.5"
@@ -182,7 +184,7 @@ def run_filter(nc_no: str) -> None:
     # 读取gdb
     gdb_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/gene_annotation/spCas9_Homo_chrY.tsv"
     gdb_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/gene_annotation/spCas9_Homo_chr1.tsv"
-    gdb_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/gene_annotation_re/spCas9_Homo_{nc2chr_dict[nc_no]}.tsv"
+    gdb_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/gene_annotation/spCas9_Homo_{nc2chr_dict[nc_no]}.tsv"
     gdb_df = gdb2df(gdb_file)
     # gdb_df = pd.DataFrame([])
     # 读取对应的exon表
@@ -194,7 +196,7 @@ def run_filter(nc_no: str) -> None:
     print(f"load gdb time cost:{time.time() - t1}")
     # 注释gdb
     t1 = time.time()
-    filter_intron(gdb_df, exon_df, output_file)
+    filter_intron(nc_no, gdb_df, exon_df, output_file)
     memory_info = process.memory_info()
     peak_memory_gb = memory_info.peak_wset / (1024**3) if hasattr(memory_info, 'peak_wset') else memory_info.rss / (1024**3)
 
@@ -203,12 +205,12 @@ def run_filter(nc_no: str) -> None:
     
 
 
-def main():
+def main() -> None:
     nc2chr_file = "nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    # async_in_iterable_structure(run_filter,nc_li,8)
-    run_filter(nc_li[6])
+    async_in_iterable_structure(run_filter,nc_li,8)
+    # run_filter(nc_li[23])
 
 if __name__ == "__main__":
     main()
