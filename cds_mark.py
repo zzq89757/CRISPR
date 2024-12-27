@@ -33,12 +33,13 @@ def gene_ori_dict(nc_no: str) -> dict:
     return dict(zip(gene_df[0], gene_df[3]))
 
 
-def common_cds_front_region(cds_df: pd.DataFrame) -> pd.DataFrame:
+def common_cds_front_region(cds_df: pd.DataFrame, gene_ori_dict: dict) -> pd.DataFrame:
     # 找到所有转录本对应CDS的前2/3后取并集 注意方向!!!
     new_res = pd.DataFrame([])
     cds_df.columns = ["Gene", "Transcript", "CDS_start", "CDS_end"]
     # 按照转录本分组
     for tran, tran_df in cds_df.groupby("Transcript"):
+        ori = gene_ori_dict[tran_df["Gene"][0]]
         result = []
         # 计算总长
         full_cds_len = sum(tran_df["CDS_end"] - tran_df["CDS_start"])
@@ -72,7 +73,7 @@ def common_cds_front_region(cds_df: pd.DataFrame) -> pd.DataFrame:
     return new_res
 
     
-def mark_cds(gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file: str) -> None:
+def mark_cds(nc_no: str, gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file: str) -> None:
     # output_file = "exon_filter/exu.tsv"
     output_handle = open(output_file,'w')
     
@@ -81,7 +82,9 @@ def mark_cds(gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file: str) -> No
     # cds_df = cds_df.sort_values(by=[2, 3], key=lambda col: group_order if col.name == 2 else col)
     # cds_df[4] = cds_df.groupby(1).cumcount() + 1
     # cds_df = cds_df.sort_values(2)
-    cds_df = common_cds_front_region(cds_df)
+    ori_dict = gene_ori_dict(nc_no)
+    
+    cds_df = common_cds_front_region(cds_df, ori_dict)
     cds_df.columns = [0,4,1,2]
     scaffold_pos_li = scaffold_detective_numpy(cds_df)
     # print(scaffold_pos_li)
@@ -202,7 +205,7 @@ def run_mark(nc_no) -> None:
     cds_df = region2df(cds_file)
     # cds_df.to_csv("./nc22.cds",header=None,sep="\t")
     # mark_cds(gdb_df,cds_df,"/mnt/ntc_data/wayne/Repositories/CRISPR/cds_mark/NC_000024.10.tsv")
-    mark_cds(gdb_df,cds_df,f"/mnt/ntc_data/wayne/Repositories/CRISPR/cds_mark/{nc_no}.tsv")
+    mark_cds(nc_no, gdb_df,cds_df,f"/mnt/ntc_data/wayne/Repositories/CRISPR/cds_mark/{nc_no}.tsv")
     memory_info = process.memory_info()
     peak_memory_gb = memory_info.peak_wset / (1024**3) if hasattr(memory_info, 'peak_wset') else memory_info.rss / (1024**3)
 
