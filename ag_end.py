@@ -23,7 +23,7 @@ def gdb2df(gdb_path: str) -> pd.DataFrame:
 
 
 def mark_ag(gdb: pd.DataFrame) -> None:
-    gdb[17] = gdb[1].apply(lambda x: 'yes' if str(x).endswith(('AG', 'GG')) else 'no')
+    gdb[17] = gdb[1].apply(lambda x: x[-2:] if str(x).endswith(('AG', 'GG')) else 'No')
 
 
 
