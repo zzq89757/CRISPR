@@ -1,5 +1,8 @@
 from curses import noecho
+import os
+import time
 import pandas as pd
+import psutil
 
 
 
@@ -25,17 +28,27 @@ def mark_ag(gdb: pd.DataFrame) -> None:
 
 
 def run_ag_mark(nc_no: str) -> None:
+    print(f"{nc_no} start !!!")
+    t1 = time.time()
+    process = psutil.Process(os.getpid())
     gdb_path = "/mnt/ntc_data/wayne/Repositories/CRISPR/tran_count/NC_000024.10.tsv"
     gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/tran_count/{nc_no}.tsv"
     
     gdb = gdb2df(gdb_path)
-    
+    print(f"load gdb time cost:{time.time() - t1}")
+    # 注释gdb
+    t1 = time.time()
     mark_ag(gdb)
     # gdb.to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/ag_mark/NC_000024.10.tsv",header=None,sep="\t")
-    gdb.to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/ag_mark/{nc_no}.tsv",header=None,sep="\t")
-    
+    gdb.to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/ag_mark/{nc_no}.tsv",header=None,sep="\t",index=False)
+    memory_info = process.memory_info()
+    peak_memory_gb = memory_info.peak_wset / (1024**3) if hasattr(memory_info, 'peak_wset') else memory_info.rss / (1024**3)
+
+    print(f"{nc_no} 峰值内存使用: {peak_memory_gb:.2f} GB")
+    print(f"{nc_no} annotation time cost:{time.time() - t1}")
 
 def main() -> None:
+    
     from generate_split_ori import async_in_iterable_structure
     nc2chr_file = "nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
