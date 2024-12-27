@@ -209,7 +209,7 @@ def main() -> None:
     nc2chr_file = "nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    async_in_iterable_structure(run_filter,nc_li,8)
+    async_in_iterable_structure(run_filter,nc_li,12)
     # run_filter(nc_li[23])
 
 if __name__ == "__main__":
