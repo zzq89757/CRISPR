@@ -151,7 +151,7 @@ def mark_cds(nc_no: str, gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file
                         # print(exon_array[current_gene_pos_idx][2],end="\t",file=output_handle)
                         # print(exon_array[current_gene_pos_idx][3],end="\n",file=output_handle)
                         print("yes",end="\n",file=output_handle)
-                    break
+                        break
             
             if fall_flag == 0:
                 print("\t".join(str(x) for x in gdb_array[g_idx]),end="\t",file=output_handle)
