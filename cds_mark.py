@@ -39,7 +39,7 @@ def common_cds_front_region(cds_df: pd.DataFrame, gene_ori_dict: dict) -> pd.Dat
     cds_df.columns = ["Gene", "Transcript", "CDS_start", "CDS_end"]
     # 按照转录本分组
     for tran, tran_df in cds_df.groupby("Transcript"):
-        ori = gene_ori_dict[tran_df["Gene"][0]]
+        ori = gene_ori_dict[tran_df["Gene"].to_numpy()[0]]
         result = []
         # 计算总长
         full_cds_len = sum(tran_df["CDS_end"] - tran_df["CDS_start"])
@@ -55,8 +55,12 @@ def common_cds_front_region(cds_df: pd.DataFrame, gene_ori_dict: dict) -> pd.Dat
             if accumulated_length + interval_length > target_length:
                 # 修正终点，取部分区间
                 remaining_length = target_length - accumulated_length
-                new_end = start + remaining_length
-                result.append([row["Gene"], tran, start, int(new_end)])
+                if ori == '+':
+                    new_end = int(start + remaining_length)
+                    result.append([row["Gene"], tran, start, new_end])
+                else:
+                    new_start = int(end - remaining_length)
+                    result.append([row["Gene"], tran, new_start, end])
                 break
             else:
                 # 累加区间
@@ -68,7 +72,7 @@ def common_cds_front_region(cds_df: pd.DataFrame, gene_ori_dict: dict) -> pd.Dat
         # 查看结果
         new_res = pd.concat([new_res, result_df])
     new_res = new_res.sort_values("CDS_start")
-    new_res.to_csv("cdt.tsv",header=None,index=False,sep="\t")
+    # new_res.to_csv("cdt.tsv",header=None,index=False,sep="\t")
     # print(new_res)
     return new_res
 
@@ -219,7 +223,7 @@ def main() -> None:
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     # async_in_iterable_structure(run_mark,nc_li,24)
-    run_mark(nc_li[21])
+    run_mark(nc_li[0])
     
     
 
