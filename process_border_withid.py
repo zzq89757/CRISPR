@@ -6,8 +6,8 @@ path.append("/mnt/ntc_data/wayne/Repositories/CRISPR/")
 
 # from generate_split_ori import async_in_iterable_structure
 
-def async_in_iterable_structure(fun, iterable_structure, cpus):
-    def init(l):
+def async_in_iterable_structure(fun, iterable_structure, cpus) -> None:
+    def init(l) -> None:
         global lock
         lock = l
 
