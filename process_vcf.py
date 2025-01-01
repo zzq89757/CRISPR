@@ -78,7 +78,7 @@ def process_vcf(vcf_file: str, gene_file: str, output_tsv: str) -> None:
     extracted = extracted.sort_values("POS")
 
     # 保存为 TSV 文件
-    extracted.to_csv(output_tsv, sep='\t', index=False)
+    extracted.to_csv(output_tsv, sep='\t', index=False, header=None)
     
     
 def run_filter(nc_no: str) -> None:

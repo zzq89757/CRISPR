@@ -2,7 +2,7 @@ import os
 import time
 import pandas as pd
 import psutil
-from utils.read_tsv import gdb2df
+from utils.read_tsv import tsv2df
 
 # 用snp文件遍历gdb起止 似乎不可行 gdb交集区太多
 
@@ -25,14 +25,16 @@ def run_snp(nc_no: str) -> None:
     # gdb_path = "/mnt/ntc_data/wayne/Repositories/CRISPR/ag_mark/NC_000024.10.tsv"
     # read gdb
     header_type_li = ["int32", "string", "category", "category", "category", "int32", "int32", "int32", "string", "int32", "category", "category", "string", "int32", "string", "category", "string", "category"]
-    gdb_df = gdb2df(gdb_path, header_type_li)
+    gdb_df = tsv2df(gdb_path, header_type_li)
     print(gdb_df)
     print(f"load gdb<{nc_no}> time cost:{time.time() - t1}")
-    # read snp file 
-    
+    # read snp file
+    snp_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/vcf_split/filter/{nc_no}.tsv"
+    snp_type_li = ['int32', 'string', 'string', 'string'] 
+    snp_df = tsv2df(snp_path, snp_type_li)
     # 注释gdb
     t1 = time.time()
-    snp_detective(gdb_df, pd.DataFrame([]))
+    snp_detective(gdb_df, snp_df)
     peak_memory_gb = memory_info.peak_wset / (1024**3) if hasattr(memory_info, 'peak_wset') else memory_info.rss / (1024**3)
 
     print(f"process {nc_no} peak memory cost: {peak_memory_gb:.2f} GB")
