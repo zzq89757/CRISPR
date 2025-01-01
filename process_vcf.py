@@ -4,6 +4,22 @@ import pandas as pd
 import psutil
 from generate_split_ori import async_in_iterable_structure
 
+
+def gene_in_li(gene_info: str, gene_li: list) -> bool:
+    if str(gene_info).find("|") != -1:
+        gene_info_li = [x.split(":")[0] for x in gene_info.split("|")]
+        for gene in gene_info_li:
+            if gene in gene_li:
+                return True
+    else:
+        if str(gene_info) in gene_li:
+            return True
+    return False
+
+
+# gene_in_li("LOC107987347:107987347|LOC107987346:107987346",[])
+
+# exit()
 # 读取 VCF 文件
 def process_vcf(vcf_file: str, gene_file: str, output_tsv: str) -> None:
     # 读取基因位置信息
@@ -54,11 +70,12 @@ def process_vcf(vcf_file: str, gene_file: str, output_tsv: str) -> None:
     
 
     # 过滤掉不含 GENEINFO 和不在上下游16bp的行 (需要将以|分隔的基因名进行额外判断)
-    extracted = extracted[extracted['GENEINFO'].isin(gene_li) | extracted.index.isin(filter_na_pos_li)]
-    
+    extracted = extracted[extracted['GENEINFO'].apply(lambda x:gene_in_li(x,gene_li)) | extracted.index.isin(filter_na_pos_li)]
+
     # print(len(filter_na_pos_li))
     # 去掉 多余 列
-    extracted = extracted[["POS", "REF", "ALT"]]
+    extracted = extracted[["POS", "REF", "ALT", "GENEINFO"]]
+    extracted = extracted.sort_values("POS")
 
     # 保存为 TSV 文件
     extracted.to_csv(output_tsv, sep='\t', index=False)
@@ -85,8 +102,8 @@ def main() -> None:
     nc2chr_file = "nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    run_filter(nc_li[0])
-    # async_in_iterable_structure(run_filter,nc_li,24)
+    # run_filter(nc_li[-1])
+    async_in_iterable_structure(run_filter,nc_li,24)
 
 
 if __name__ == "__main__":
