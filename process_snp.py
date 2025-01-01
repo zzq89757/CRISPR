@@ -6,9 +6,9 @@ from utils.read_tsv import tsv2df
 
 # 用snp文件遍历gdb起止 似乎不可行 gdb交集区太多
 
-# 
+# 双指针遍历 snp和gdb
 def snp_detective(gdb: pd.DataFrame, snp_df: pd.DataFrame) -> None:
-    
+    print(snp_df)
     
     return
 
@@ -26,7 +26,7 @@ def run_snp(nc_no: str) -> None:
     # read gdb
     header_type_li = ["int32", "string", "category", "category", "category", "int32", "int32", "int32", "string", "int32", "category", "category", "string", "int32", "string", "category", "string", "category"]
     gdb_df = tsv2df(gdb_path, header_type_li)
-    print(gdb_df)
+    # print(gdb_df)
     print(f"load gdb<{nc_no}> time cost:{time.time() - t1}")
     # read snp file
     snp_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/vcf_split/filter/{nc_no}.tsv"
