@@ -19,8 +19,8 @@ def async_in_iterable_structure(fun, iterable_structure, cpus) -> None:
 
 def run_cmd(i):
     # system(f"awk '$4==\"{i}\"' split_out/sorted/'spCas9_Homo(WGS)_gRNA-Original.tsv' > ori_split/ori_{i}.tsv")
-    print(f"mkdir ./tmp_{i} && java -Xmx8g -jar FlashFry-assembly-1.15.jar  index  --tmpLocation ./tmp_{i}  --database {i}_cas9_db --reference /mnt/ntc_data/wayne/Repositories/CRISPR/GCF_000001405.40/split_fa/{i}.fa --enzyme spcas9")
-    system(f"mkdir ./tmp_{i} && java -Xmx8g -jar FlashFry-assembly-1.15.jar  index  --tmpLocation ./tmp_{i}  --database {i}_cas9_db --reference /mnt/ntc_data/wayne/Repositories/CRISPR/GCF_000001405.40/split_fa/{i}.fa --enzyme spcas9")
+    print(f"mkdir ./tmp_{i} && java -Xmx120g -jar FlashFry-assembly-1.15.jar  index  --tmpLocation ./tmp_{i}  --database {i}_cas9_db --reference /mnt/ntc_data/wayne/Repositories/CRISPR/GCF_000001405.40/split_fa/{i}.fa --enzyme spcas9")
+    system(f"mkdir ./tmp_{i} && java -Xmx120g -jar FlashFry-assembly-1.15.jar  index  --tmpLocation ./tmp_{i}  --database {i}_cas9_db --reference /mnt/ntc_data/wayne/Repositories/CRISPR/GCF_000001405.40/split_fa/{i}.fa --enzyme spcas9")
 
 
 # for i in range(1,23):
@@ -42,7 +42,8 @@ def main() -> None:
     nc_li.remove("NC_000001.11")
     nc_li.remove("NC_000024.10")
     chr_li = ["chr" + str(x) for x in (list(range(1, 23)) + ["X", "Y"])]
-    async_in_iterable_structure(run_cmd,nc_li,22)
+    # async_in_iterable_structure(run_cmd,nc_li,22)
+    run_cmd("NCA")
 
 if __name__ == "__main__":
     main()
