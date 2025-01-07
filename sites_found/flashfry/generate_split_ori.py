@@ -21,6 +21,7 @@ def run_cmd(i):
     # system(f"awk '$4==\"{i}\"' split_out/sorted/'spCas9_Homo(WGS)_gRNA-Original.tsv' > ori_split/ori_{i}.tsv")
     print(f"mkdir ./tmp_{i} && java -Xmx120g -jar FlashFry-assembly-1.15.jar  index  --tmpLocation ./tmp_{i}  --database {i}_cas9_db --reference /mnt/ntc_data/wayne/Repositories/CRISPR/GCF_000001405.40/split_fa/{i}.fa --enzyme spcas9")
     system(f"mkdir ./tmp_{i} && java -Xmx120g -jar FlashFry-assembly-1.15.jar  index  --tmpLocation ./tmp_{i}  --database {i}_cas9_db --reference /mnt/ntc_data/wayne/Repositories/CRISPR/GCF_000001405.40/split_fa/{i}.fa --enzyme spcas9")
+    system(f"java -Xmx8g -jar FlashFry-assembly-1.15.jar  discover  --database NCA_cas9_db  --fasta NC_000001.11.fa  --output 1a_sg.tsv --maxMismatch 3 --maximumOffTargets 100 --forceLinear")
 
 
 # for i in range(1,23):

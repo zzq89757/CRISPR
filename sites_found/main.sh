@@ -25,9 +25,11 @@
 # y test <chr1 建库 120min y扫chr1 10min>
  # 构建y 对应的索引
 #  ln -s /mnt/ntc_data/wayne/Repositories/CRISPR/GCF_000001405.40/split_fa/NC_000024.10.fa ./
- java -Xmx8g -jar FlashFry-assembly-1.15.jar  index  --tmpLocation ./tmp  --database NC24_cas9_db --reference NC_000024.10.fa --enzyme spcas9
+ java -Xmx8g -jar FlashFry-assembly-1.15.jar  index  --tmpLocation ./tmp  --database /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/NC_000024.10_cas9_db --reference NC_000024.10.fa --enzyme spcas9
  # 提取y中的序列 生成fasta文件
  python dbseq2fasta.py
  # 搜索脱靶位点序列
- java -Xmx8g -jar FlashFry-assembly-1.15.jar  discover  --database NC24_cas9_db  --fasta y_sg.fasta  --output y_sg.tsv --maxMismatch 3 --maximumOffTargets 100
+ java -Xmx8g -jar FlashFry-assembly-1.15.jar  discover  --database /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/db/NC_000024.10_cas9_db  --fasta y_sg.fasta  --output y_sg.tsv --maxMismatch 3 --maximumOffTargets 100 --forceLinear
+ java -Xmx8g -jar FlashFry-assembly-1.15.jar  discover  --database NCA_cas9_db  --fasta y_sg.fasta  --output ya_sg.tsv --maxMismatch 3 --maximumOffTargets 100 --forceLinear
+ java -Xmx8g -jar FlashFry-assembly-1.15.jar  discover  --database NCA_cas9_db  --fasta NC_000001.11.fa  --output 1a_sg.tsv --maxMismatch 3 --maximumOffTargets 100 --forceLinear
  
