@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import time
 import pandas as pd
 from os import system
@@ -26,22 +27,18 @@ def gdb2fa(gdb_df: pd.DataFrame, nc_no: str) -> None:
 def flashfry_cmd(gdb_fa_path: str, ot_path: str, output_path: str) -> None:
     # print(f"java -Xmx8g -jar /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/FlashFry-assembly-1.15.jar  discover  --database {ot_path}  --fasta {gdb_fa_path}  --output {output_path} --maxMismatch 3 --maximumOffTargets 100")
     system(f"java -Xmx8g -jar /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/FlashFry-assembly-1.15.jar  discover  --database {ot_path}  --fasta {gdb_fa_path}  --output {output_path} --maxMismatch 3 --maximumOffTargets 100 --forceLinear")
-
-# 将gdb的y染色体部分 分别扫各个染色体的ot库
-def gdb2ot(output_fa: str, ot_path: str, output_path: str) -> pd.DataFrame:
-    flashfry_cmd(output_fa, ot_path, output_path)
     
 
-def map(nc_no:str):
-    # output_fa = f"/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/fa/{nc_no}.fa"
-    # output_fa = f"/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/fa/NC_000024.10.fa"
-    output_fa = f"/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/fa/{nc_no}.fa"
+def run_flashfry_cmd(nc_no:str):
     ot_path = "/mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/NCA_cas9_db"
-    res_path = "/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res/"
     
-    res_out_path = f"{res_path}/{nc_no}.tsv"
-
-    flashfry_cmd(output_fa,ot_path,res_out_path)
+    output_fa_li = list(Path(f"/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/fa/").glob(f"{nc_no}*fa"))
+    
+    res_path = "/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res/"
+    res_out_path_li = [f"{res_path}/{fa.name.replace("fa","tsv")}" for fa in output_fa_li]
+    
+    for output_fa,res_out_path in zip(output_fa_li, res_out_path_li):    
+        flashfry_cmd(output_fa,ot_path,res_out_path)
     
 def run_map(nc_no: str) -> None:
     t1 = time.time()
@@ -54,10 +51,10 @@ def run_map(nc_no: str) -> None:
     print(f"load gdb<{nc_no}> time cost:{time.time() - t1}")
     t1 = time.time()
     
-    gdb2fa(gdb_df,nc_no)
+    # gdb2fa(gdb_df,nc_no)
     print(f"gdb2fa <{nc_no}> time cost:{time.time() - t1}")
     t1 = time.time()  
-    # map(nc_no)
+    run_flashfry_cmd(nc_no)
     
 
     print(f"run flashfry <{nc_no}> time cost:{time.time() - t1}")
@@ -72,8 +69,7 @@ def main() -> None:
     nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    # nc_li = nc_li[1:-1]
-    # run_map(nc_li[0])
+    # run_map(nc_li[1])
     async_in_iterable_structure(run_map,nc_li,24)
     
     
