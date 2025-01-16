@@ -5,7 +5,7 @@ GTF
 GCF*
 tmp
 .nfs*
-*.xlsx
+*.xls*
 *log
 *gtf
 *li

@@ -30,11 +30,11 @@ def flashfry_cmd(gdb_fa_path: str, ot_path: str, output_path: str) -> None:
     
 
 def run_flashfry_cmd(nc_no:str):
-    ot_path = "/mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/NCA_cas9_db"
+    ot_path = "/mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/db_NGG/NCA_cas9_db"
     
     output_fa_li = list(Path(f"/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/fa/").glob(f"{nc_no}*fa"))
     
-    res_path = "/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res/"
+    res_path = "/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res_ngg/"
     res_out_path_li = [f"{res_path}/{fa.name.replace("fa","tsv")}" for fa in output_fa_li]
     
     for output_fa,res_out_path in zip(output_fa_li, res_out_path_li):    
@@ -45,13 +45,13 @@ def run_map(nc_no: str) -> None:
     process = psutil.Process(os.getpid())
     memory_info = process.memory_info()
     
-    gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/cds_mark/{nc_no}.tsv"
+    gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/pam_filter/{nc_no}.tsv"
     header_type_li = ["int32", "string", "category", "category", "category", "int32", "int32", "int32", "string", "int32", "category", "category", "string", "int32", "string", "category", "string", "category"]
     gdb_df = tsv2df(gdb_path, header_type_li)
     print(f"load gdb<{nc_no}> time cost:{time.time() - t1}")
     t1 = time.time()
     
-    # gdb2fa(gdb_df,nc_no)
+    gdb2fa(gdb_df,nc_no)
     print(f"gdb2fa <{nc_no}> time cost:{time.time() - t1}")
     t1 = time.time()  
     run_flashfry_cmd(nc_no)

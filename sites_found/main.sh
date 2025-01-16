@@ -32,4 +32,4 @@
  java -Xmx8g -jar FlashFry-assembly-1.15.jar  discover  --database /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/db/NC_000024.10_cas9_db  --fasta y_sg.fasta  --output y_sg.tsv --maxMismatch 3 --maximumOffTargets 100 --forceLinear
  java -Xmx8g -jar FlashFry-assembly-1.15.jar  discover  --database NCA_cas9_db  --fasta y_sg.fasta  --output ya_sg.tsv --maxMismatch 3 --maximumOffTargets 100 --forceLinear
  java -Xmx8g -jar FlashFry-assembly-1.15.jar  discover  --database NCA_cas9_db  --fasta NC_000001.11.fa  --output 1a_sg.tsv --maxMismatch 3 --maximumOffTargets 100 --forceLinear
- 
+ java -Xmx4g -jar FlashFry-assembly-1.15.jar  score  --input EMX1_ot.tsv  --output EMX1_ot_scored.tsv  --scoringMetrics doench2016cfd  --database chr22_cas9ngg_database 
