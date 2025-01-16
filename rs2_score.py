@@ -7,6 +7,7 @@ path.append("/mnt/ntc_data/wayne/Repositories/CRISPR/")
 from utils.read_tsv import tsv2df
 from generate_split_ori import async_in_iterable_structure
 
+
 # 补齐上下游10bp后计算Azimuth score
 def reverse_complement(seq: str) -> str:
     return str(Seq(seq).reverse_complement())
@@ -68,6 +69,7 @@ def run(nc_no: str) -> None:
     # save as tsv
     output_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/az_score/{nc_no}.tsv"
     gdb_df.to_csv(output_path,sep="\t",header=None,index=None)
+
 
 def main() -> None:
     run("NC_000024.10")
