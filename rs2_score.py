@@ -45,7 +45,7 @@ def az_score(nc_no,seq):
     scores = np.array([])
     for i in range(0,len(seq),batch_size):
         batch = seq[i:i+batch_size]
-        score = azimuth.model_comparison.predict(seq=batch,model_file = "/mnt/ntc_data/wayne/Software/miniconda3/envs/azimuth3/lib/python3.8/site-packages/Biomatters_Azimuth-0.2.6-py3.8.egg/azimuth/saved_models/V3_model_nopos.pickle")
+        score = azimuth.model_comparison.predict(seq=batch,model_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/score/Azimuth/azimuth/saved_models/V3_model_nopos.pickle")
         print(f"<{nc_no}> {i+batch_size+1}/{len(seq)} finished...")
         scores = np.append(scores,score)
     return scores
@@ -66,7 +66,7 @@ def run(nc_no: str) -> None:
     # if result already exists,skiped
     if Path(f"/mnt/ntc_data/wayne/Repositories/CRISPR/az_score/{nc_no}.tsv").exists():
         print(f"/mnt/ntc_data/wayne/Repositories/CRISPR/az_score/{nc_no}.tsv is exists,skiped !!!")
-        return
+        return None
     
     flank_res_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/flank_fill/{nc_no}.tsv"
     gdb_df = pd.DataFrame([])
@@ -94,7 +94,8 @@ def run(nc_no: str) -> None:
             20:"up_stream",
             21:"down_stream"
         },inplace=True)
-        
+        print(f"/mnt/ntc_data/wayne/Repositories/CRISPR/flank_fill/{nc_no} load ...")
+
     # calc rs2 score
     rs2_score_calc(nc_no, gdb_df)
     print(f"{nc_no} rs2 score finished...")
@@ -109,7 +110,7 @@ def main() -> None:
     nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    async_in_iterable_structure(run,nc_li,4)
+    async_in_iterable_structure(run,nc_li,24)
     # run(nc_li[-4])
     
 if __name__ == "__main__":
