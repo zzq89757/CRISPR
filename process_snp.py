@@ -21,10 +21,10 @@ def run_snp(nc_no: str) -> None:
     nc2chr_file = "nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc2chr_dict = dict(zip(nc_df[0],nc_df[1]))
-    gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/ag_mark/{nc_no}.tsv"
+    gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/az_score/{nc_no}.tsv"
     # gdb_path = "/mnt/ntc_data/wayne/Repositories/CRISPR/ag_mark/NC_000024.10.tsv"
     # read gdb
-    header_type_li = ["int32", "string", "category", "category", "category", "int32", "int32", "int32", "string", "int32", "category", "category", "string", "int32", "string", "category", "string", "category"]
+    header_type_li = ["string", "string", "category", "category", "category", "int32", "int32", "int32", "string", "int32", "category", "category", "string", "int32", "string", "category", "string", "category"]
     gdb_df = tsv2df(gdb_path, header_type_li)
     # print(gdb_df)
     print(f"load gdb<{nc_no}> time cost:{time.time() - t1}")
