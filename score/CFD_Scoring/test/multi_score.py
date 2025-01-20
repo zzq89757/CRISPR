@@ -26,7 +26,7 @@ def run_cmd(i) -> None:
     # print(f"mkdir ./tmp_{i} && java -Xmx120g -jar FlashFry-assembly-1.15.jar  index  --tmpLocation ./tmp_{i}  --database {i}_cas9_db --reference /mnt/ntc_data/wayne/Repositories/CRISPR/GCF_000001405.40/split_fa/{i}.fa --enzyme spcas9")
     # system(f"mkdir ./tmp_{i} && java -Xmx120g -jar FlashFry-assembly-1.15.jar  index  --tmpLocation ./tmp_{i}  --database {i}_cas9_db --reference /mnt/ntc_data/wayne/Repositories/CRISPR/GCF_000001405.40/split_fa/{i}.fa --enzyme spcas9")
     print(f"java -Xmx{mem}g -jar FlashFry-assembly-1.15.jar  score  --database NCA_cas9_db  --input all_res/{i}.tsv  --output all_score/{i}.tsv  --scoringMetrics doench2016cfd")
-    system(f"java -Xmx{mem}g -jar /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/FlashFry-assembly-1.15.jar  score  --database /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/NCA_cas9_db  --input all_res/{i}.tsv  --output all_score/{i}.tsv  --scoringMetrics doench2016cfd --includeOTs")
+    system(f"java -Xmx{mem}g -jar /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/FlashFry-assembly-1.15.jar  score  --database /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/NCA_cas9_db  --input all_res/{i}.tsv  --output all_score/{i}.tsv  --scoringMetrics doench2016cfd")
 
 
 # for i in range(1,23):
