@@ -7,6 +7,10 @@ import numpy as np
 # 用snp文件遍历gdb起止 似乎不可行 gdb交集区太多
 
 
+def guide_append_pam(gdb_df: pd.DataFrame) -> np.ndarray:
+    return gdb_df[1].to_numpy() + gdb_df[2].to_numpy()
+
+
 def multi_indel_split(snp_df: pd.DataFrame) -> np.ndarray:
     # 将多位点indel拆分成多个item 并返回pos array
     pos_array = snp_df[0].to_numpy()
@@ -19,18 +23,31 @@ def multi_indel_split(snp_df: pd.DataFrame) -> np.ndarray:
         if len(ref) == len(alt) == 1:
             snp_pos_array = np.append(snp_pos_array,pos)
         else:
-            ...
-    
+            # multi insertion
+            if len(ref) < len(alt):
+                ...
+            # multi deletion
+            elif len(ref) > len(alt):
+                ...
+            else:
+                # like CTGATCAGTGTATTT->CCGATTGGTGCATTC
+                for i in range(len(ref)):
+                    if ref[i] == alt[i]:continue
+                    snp_pos_array = np.append(snp_pos_array, pos + i + 1)
+                print(pos)
+                print(ref)
+                print(alt)
     print(snp_pos_array)
+    return snp_pos_array
 
 
 # 双指针遍历 snp和gdb
-def snp_detective(gdb: pd.DataFrame, snp_df: pd.DataFrame) -> None:
-    # print(gdb)
+def snp_detective(gdb_df: pd.DataFrame, snp_df: pd.DataFrame) -> None:
     # 提取guide+pam
+    guide_pam_seq_array = guide_append_pam(gdb_df)
     
-    # print(snp_df)
-    multi_indel_split(snp_df)
+    # 多位点indel拆分
+    snp_pos_array = multi_indel_split(snp_df)
     return
 
 
