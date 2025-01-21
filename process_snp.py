@@ -1,7 +1,5 @@
-import os
 import time
 import pandas as pd
-import psutil
 from utils.read_tsv import tsv2df
 import numpy as np
 # 用snp文件遍历gdb起止 似乎不可行 gdb交集区太多
