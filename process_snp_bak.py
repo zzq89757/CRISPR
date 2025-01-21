@@ -16,26 +16,63 @@ def multi_indel_split(snp_df: pd.DataFrame) -> np.ndarray:
     pos_array = snp_df[0].to_numpy()
     ref_array = snp_df[1].to_numpy()
     alter_array = snp_df[2].to_numpy()
-    snp_pos_list = []
+    snp_pos_array = np.array(object=[],dtype=np.int64)
     # 遍历寻找multi indel 位点
     for pos,ref,alt in zip(pos_array,ref_array,alter_array):
-        ref_len = len(ref)
+        
         # 常规1->1 直接append
-        if len(alt) == 1 and ref_len == 1:
-            snp_pos_list.append(pos)
-            continue     
-        # 逗号分隔alt
-        for alt_seg in alt.split(","):
-            alt_len = len(alt_seg)
-            duplex_len = min(ref_len,alt_len)
-            full_len = max(ref_len,alt_len)
-            # duplex 判断碱基是否一致 
+        if len(alt) == 1 and len(ref) == 1:
+            snp_pos_array = np.append(snp_pos_array,pos)
+            continue
+        
+        # 无逗号
+        
+        # 无逗号 N->M
+        if alt.find(",") == -1:
+            full_len = max(len(ref),len(alt))
+            duplex_len = min(len(ref),len(alt))
+            gap_len = full_len - duplex_len
+            gap_start = pos + duplex_len
+            gap_end = pos + full_len
+            print(pos,end="\t")
+            print(ref,end="\t")
+            print(alt)
             for i in range(duplex_len):
-                if ref[i] == alt_seg[i]:continue
-                snp_pos_list.append(pos + i)
-            # gap 直接判定为indel
-            snp_pos_list.extend(range(pos + duplex_len, pos + full_len))
-    return np.unique(snp_pos_list)
+                if ref[i] != alt[i]:
+                    print(pos + i)
+                    snp_pos_array = np.append(snp_pos_array,pos + i)
+                    
+            for i in range(gap_start,gap_end):
+                snp_pos_array = np.append(snp_pos_array,i)
+                print(i)
+            
+            continue
+            
+        # 有逗号
+        # print(pos,end="\t")
+        # print(ref,end="\t")
+        # print(alt)
+        # 先按照逗号分隔($2无逗号) 可能出现G->GA,GAA  TACG->T,TGGCTCTGGGTCACAGGT
+        
+        # 可能出现len(ref)==len(alt)!=1的情况
+        
+    #     else:
+    #         # multi insertion
+    #         if len(ref) < len(alt):
+    #             ...
+    #         # multi deletion
+    #         elif len(ref) > len(alt):
+    #             ...
+    #         else:
+    #             # like CTGATCAGTGTATTT->CCGATTGGTGCATTC
+    #             for i in range(len(ref)):
+    #                 if ref[i] == alt[i]:continue
+    #                 snp_pos_array = np.append(snp_pos_array, pos + i + 1)
+    #             print(pos)
+    #             print(ref)
+    #             print(alt)
+    # print(snp_pos_array)
+    return snp_pos_array
 
 
 # 双指针遍历 snp和gdb
@@ -45,9 +82,6 @@ def snp_detective(gdb_df: pd.DataFrame, snp_df: pd.DataFrame) -> None:
     
     # 多位点indel拆分
     snp_pos_array = multi_indel_split(snp_df)
-    
-    # 双指针遍历
-    
     return
 
 
@@ -82,7 +116,7 @@ def run_snp(nc_no: str) -> None:
 
 
 def main() -> None:
-    run_snp("NC_000001.11")
+    run_snp("NC_000024.10")
     return
 
 
