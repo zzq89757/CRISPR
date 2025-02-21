@@ -7,6 +7,14 @@ from utils.read_tsv import tsv2df
 from generate_split_ori import async_in_iterable_structure
 
 
+def extract_pair_grna_info(grna1_df: pd.DataFrame, grna2: pd.DataFrame) -> pd.DataFrame:
+    ...
+
+
+def is_pair() -> None:
+    ...
+
+
 def dual(raw_db: str) -> pd.DataFrame:
     # 读取filter20 数据库
     df = tsv2df(raw_db,[])
@@ -18,7 +26,10 @@ def dual(raw_db: str) -> pd.DataFrame:
             continue
         # 若只有两条 强行配对并输出信息
         if grna_num == 2:
-            print(sub_df)
+            grna1_df = sub_df.iloc[[0]]
+            grna2_df = sub_df.iloc[[1]]
+            extract_pair_grna_info(grna1_df, grna2_df)
+            continue
         # 两条以上的情况
         
             
