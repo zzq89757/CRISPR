@@ -30,7 +30,7 @@ def dual(raw_db: str) -> pd.DataFrame:
             grna2_df = sub_df.iloc[[1]]
             extract_pair_grna_info(grna1_df, grna2_df)
             continue
-        # 两条以上的情况
+        # 两条以上的情况 有放回还是无放回？
         
             
     exit()
