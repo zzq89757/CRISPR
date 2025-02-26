@@ -61,41 +61,45 @@ def dual(raw_db: str) -> pd.DataFrame:
         # 先按照方向分组
         df_pos = sub_df[sub_df[5] == '+']
         df_neg = sub_df[sub_df[5] == '-']
-        # 若过滤前组合数小于20 输出原始排列结果
-        if len(df_pos) * len(df_neg) <= 20:
-            ...
-            continue
-        # print(sub_df)
-        all_pair_num = 0
+        all_pair_li = []
         for _, grna1 in df_pos.iterrows():
-            # 两个分数差值都在20以内
-            cfd_score = grna1[19]
-            cfd_low = cfd_score - 20
-            cfd_high = cfd_score + 20
-            rs2_score = grna1[22]
-            rs2_low = rs2_score - 20
-            rs2_high = rs2_score + 20
-            candidate_df = df_neg[(df_neg[19] <= cfd_high) & (df_neg[19] >= cfd_low) & (
-                df_neg[22] <= rs2_high) & (df_neg[22] >= rs2_low)]
-            # 间隔在50-1wbp
-            grna_start = grna1[6]
-            grna_end = grna1[7]
-            grna_middle = (grna_end + grna_start) / 2
-            middle_start_left = grna_middle - 10000
-            middle_end_left = grna_middle - 50
-            middle_start_right = grna_middle + 50
-            middle_end_right = grna_middle + 10000
-            candidate_df['grna_middle'] = (
-                candidate_df[6] + candidate_df[7]) / 2
-            candidate_df = candidate_df[
-                (middle_start_left < candidate_df['grna_middle']) & (candidate_df['grna_middle'] < middle_end_left) |
-                (middle_start_right < candidate_df['grna_middle']) & (
-                    candidate_df['grna_middle'] < middle_end_right)
-            ]
-            # print(len(candidate_df))
-            all_pair_num += len(candidate_df)
-        print(all_pair_num)
-
+            # 若过滤前组合数小于20 输出原始排列结果 否则筛选
+            candidate_df = df_neg.copy(deep=True)
+            if len(df_pos) * len(df_neg) > 20:
+                # 两个分数差值都在20以内
+                cfd_score = grna1[19]
+                cfd_low = cfd_score - 20
+                cfd_high = cfd_score + 20
+                rs2_score = grna1[22]
+                rs2_low = rs2_score - 20
+                rs2_high = rs2_score + 20
+                candidate_df = df_neg[(df_neg[19] <= cfd_high) & (df_neg[19] >= cfd_low) & (
+                    df_neg[22] <= rs2_high) & (df_neg[22] >= rs2_low)]
+                # 间隔在50-1wbp
+                grna_start = grna1[6]
+                grna_end = grna1[7]
+                grna_middle = (grna_end + grna_start) / 2
+                middle_start_left = grna_middle - 10000
+                middle_end_left = grna_middle - 50
+                middle_start_right = grna_middle + 50
+                middle_end_right = grna_middle + 10000
+                candidate_df['grna_middle'] = (
+                    candidate_df[6] + candidate_df[7]) / 2
+                candidate_df = candidate_df[
+                    (middle_start_left < candidate_df['grna_middle']) & (candidate_df['grna_middle'] < middle_end_left) |
+                    (middle_start_right < candidate_df['grna_middle']) & (
+                        candidate_df['grna_middle'] < middle_end_right)
+                ]
+                del candidate_df['grna_middle']
+                
+            for __, grna2 in candidate_df.iterrows():
+                grna1_df = pd.DataFrame(grna1).T
+                grna2_df = pd.DataFrame(grna2).T
+                all_pair_li.append([grna1_df, grna2_df])
+        # 处理all pair li
+        print(len(all_pair_li))
+                
+                
 def run_dual(nc_no: str) -> None:
     raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_20/{nc_no}.tsv"
     output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/dual/{nc_no}.tsv"
