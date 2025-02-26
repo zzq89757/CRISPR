@@ -1,4 +1,5 @@
 from pathlib import Path
+import time
 import pandas as pd
 from sys import path
 from os import system
@@ -31,8 +32,9 @@ def extract_pair_grna_info(pair_list: list) -> pd.DataFrame:
         # merge_df = distance + grna1[info_idx]
         # print(grna2)
         # print(merge_df)
-        res_li.append(merge_df)
-
+        res_li.append(pd.DataFrame(merge_df).T)
+    
+    return res_li
 
 def is_pair() -> None:
     ...
@@ -41,9 +43,10 @@ def is_pair() -> None:
 def dual(raw_db: str) -> pd.DataFrame:
     # 读取filter20 数据库
     df = tsv2df(raw_db, [])
+    all_res_li = []
     # 按照基因分组
     for gene, sub_df in df.groupby(9, sort=False):
-        print(gene,end="\t")
+        # print(gene,end="\n")
         grna_num = len(sub_df)
         # 若只有一条 无法成对 跳过
         if grna_num == 1:
@@ -54,7 +57,7 @@ def dual(raw_db: str) -> pd.DataFrame:
             grna2_df = sub_df.iloc[[1]]
             if grna1_df[5].values[0] == grna2_df[5].values[0]:
                 continue
-            extract_pair_grna_info([[grna1_df, grna2_df]])
+            all_res_li += extract_pair_grna_info([[grna1_df, grna2_df]])
             continue
         # 两条以上的情况 暂时有放回
         sub_df = sub_df.reset_index(drop=True)
@@ -62,9 +65,9 @@ def dual(raw_db: str) -> pd.DataFrame:
         df_pos = sub_df[sub_df[5] == '+']
         df_neg = sub_df[sub_df[5] == '-']
         all_pair_li = []
+        filter_pair_li = []
         for _, grna1 in df_pos.iterrows():
             # 若过滤前组合数小于20 输出原始排列结果 否则筛选
-            candidate_df = df_neg.copy(deep=True)
             if len(df_pos) * len(df_neg) > 20:
                 # 两个分数差值都在20以内
                 cfd_score = grna1[19]
@@ -73,9 +76,9 @@ def dual(raw_db: str) -> pd.DataFrame:
                 rs2_score = grna1[22]
                 rs2_low = rs2_score - 20
                 rs2_high = rs2_score + 20
-                candidate_df = df_neg[(df_neg[19] <= cfd_high) & (df_neg[19] >= cfd_low) & (
+                filter_candidate_df = df_neg[(df_neg[19] <= cfd_high) & (df_neg[19] >= cfd_low) & (
                     df_neg[22] <= rs2_high) & (df_neg[22] >= rs2_low)]
-                # 间隔在50-1wbp
+                # 两条gRNA中点间隔在50-1wbp
                 grna_start = grna1[6]
                 grna_end = grna1[7]
                 grna_middle = (grna_end + grna_start) / 2
@@ -83,30 +86,39 @@ def dual(raw_db: str) -> pd.DataFrame:
                 middle_end_left = grna_middle - 50
                 middle_start_right = grna_middle + 50
                 middle_end_right = grna_middle + 10000
-                candidate_df['grna_middle'] = (
-                    candidate_df[6] + candidate_df[7]) / 2
-                candidate_df = candidate_df[
-                    (middle_start_left < candidate_df['grna_middle']) & (candidate_df['grna_middle'] < middle_end_left) |
-                    (middle_start_right < candidate_df['grna_middle']) & (
-                        candidate_df['grna_middle'] < middle_end_right)
+                filter_candidate_df['grna_middle'] = (
+                    filter_candidate_df[6] + filter_candidate_df[7]) / 2
+                filter_candidate_df = filter_candidate_df[
+                    (middle_start_left < filter_candidate_df['grna_middle']) & (filter_candidate_df['grna_middle'] < middle_end_left) |
+                    (middle_start_right < filter_candidate_df['grna_middle']) & (
+                        filter_candidate_df['grna_middle'] < middle_end_right)
                 ]
-                del candidate_df['grna_middle']
-                
-            for __, grna2 in candidate_df.iterrows():
+                del filter_candidate_df['grna_middle']
+            # 将正向grna和负向过滤候选加入pair li   
+            for __, grna2 in filter_candidate_df.iterrows():
+                grna1_df = pd.DataFrame(grna1).T
+                grna2_df = pd.DataFrame(grna2).T
+                filter_pair_li.append([grna1_df, grna2_df])
+            # 将正向grna和负向原始候选加入pair li
+            for __, grna2 in df_neg.iterrows():
                 grna1_df = pd.DataFrame(grna1).T
                 grna2_df = pd.DataFrame(grna2).T
                 all_pair_li.append([grna1_df, grna2_df])
-        # 处理all pair li
-        print(len(all_pair_li))
-                
+        # 处理final pair li 过滤后结果不足20则采用原始结果
+        final_pair_li = all_pair_li if len(filter_pair_li) < 20 else filter_pair_li
+        all_res_li += extract_pair_grna_info(final_pair_li)
+    # 8589908  8590507  9140859  9141958   
+    print((all_res_li))       
                 
 def run_dual(nc_no: str) -> None:
+    t1 = time.time()
     raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_20/{nc_no}.tsv"
     output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/dual/{nc_no}.tsv"
     if Path(output).exists():
         print(f"{nc_no} exists !!!")
         return
     new_df = dual(raw_db)
+    print(f"dual time cost:{time.time() - t1}")
     return
     # 保存为tsv
     new_df.to_csv(output, sep="\t", header=None, index=None)
@@ -117,7 +129,7 @@ def main() -> None:
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     # async_in_iterable_structure(run_dual, nc_li, 24)
-    run_dual(nc_li[0])
+    run_dual(nc_li[-1])
 
 
 if __name__ == "__main__":
