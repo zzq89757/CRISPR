@@ -19,20 +19,26 @@ def extract_pair_grna_info(pair_list: list) -> pd.DataFrame:
         # 提取方向列计算切点偏移量
         grna1_offset = grna1[5].astype(str) + "0.5"
         grna2_offset = grna2[5].astype(str) + "0.5"
+        # 记录公共信息Gene ID、gene name
+        gene_id = grna1[10].values[0]
+        gene_name = grna1[9].values[0]
         # 计算距离
         distance = int(abs((grna1[8] + grna1_offset.astype(float)).values[0] -
                        (grna2[8] + grna2_offset.astype(float)).values[0]))
         # 分别提取每条grna的id、序列、pam、flank、location、tran cov、strand orientation、score、snp
-        info_idx = [0, 2, 3, 21, 23, 4, 6, 7, 17, 5, 19, 22, 25]
+        info_idx = [0, 1, 21, 2, 3, 23, 4, 6, 7, 17, 5, 19, 22, 25]
         merge_df = pd.concat(
             [grna1[info_idx].iloc[0], grna2[info_idx].iloc[0]])
-        merge_df[26] = distance
+        merge_df[28] = gene_id
+        merge_df[29] = gene_name
+        merge_df[30] = distance
         merge_df = merge_df.reset_index(drop=True)
-        merge_df = merge_df[[26] + list(range(26))]
+        merge_df = pd.DataFrame(merge_df).T
+        # print(merge_df)
+        merge_df = merge_df[[28, 29, 30] + list(range(28))]
         # merge_df = distance + grna1[info_idx]
         # print(grna2)
-        # print(merge_df)
-        res_li.append(pd.DataFrame(merge_df).T)
+        res_li.append(merge_df)
     
     return res_li
 
@@ -108,7 +114,7 @@ def dual(raw_db: str) -> pd.DataFrame:
         final_pair_li = all_pair_li if len(filter_pair_li) < 20 else filter_pair_li
         all_res_li += extract_pair_grna_info(final_pair_li)
     # 8589908  8590507  9140859  9141958   
-    print((all_res_li))       
+    print(pd.concat(all_res_li))       
                 
 def run_dual(nc_no: str) -> None:
     t1 = time.time()
