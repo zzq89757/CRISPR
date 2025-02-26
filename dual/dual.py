@@ -117,6 +117,7 @@ def dual(raw_db: str) -> pd.DataFrame:
 
         # 处理final pair li 过滤后结果不足20条则从low_sort补充至20条 filter distance从小到大
         filter_pair_li.sort(key=lambda x:abs((x[1][8].values[0] + (x[1][5].astype(str) + "0.5").astype(float).values[0])-(x[0][8].values[0])+ (x[0][5].astype(str) + "0.5").astype(float)).values[0])
+        
         final_pair_li = filter_pair_li[:20] if len(
             filter_pair_li) >= 20 else filter_pair_li + low_pair_li[:20 - len(filter_pair_li)]
 
