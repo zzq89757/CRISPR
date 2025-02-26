@@ -4,14 +4,13 @@ import pandas as pd
 from sys import path
 from os import system
 path.append("/mnt/ntc_data/wayne/Repositories/CRISPR/")
-from generate_split_ori import async_in_iterable_structure
 from utils.read_tsv import tsv2df
+from generate_split_ori import async_in_iterable_structure
 pd.options.mode.copy_on_write = True
 
-def extract_pair_grna_info(pair_list: list) -> pd.DataFrame:
-    # pair list 为二维数组 每个元素为成对df
 
-    # res list
+def extract_pair_grna_info(pair_list: list) -> list:
+    # pair list 为二维数组 每个元素为成对df
     res_li = []
     for pair in pair_list:
         grna1 = pair[0]
@@ -25,24 +24,27 @@ def extract_pair_grna_info(pair_list: list) -> pd.DataFrame:
         # 计算距离
         distance = int(abs((grna1[8] + grna1_offset.astype(float)).values[0] -
                        (grna2[8] + grna2_offset.astype(float)).values[0]))
+
         # 分别提取每条grna的id、序列、pam、flank、location、tran cov、strand orientation、score、snp
-        info_idx = [0, 1, 21, 2, 3, 23, 4, 6, 7, 17, 5, 19, 22, 25]
+        info_idx = [0, 1, 21, 2, 3, 23, 13, 17, 5, 19, 22, 25]
         merge_df = pd.concat(
-            [grna1[info_idx].iloc[0], grna2[info_idx].iloc[0]])
+            [grna1[info_idx].iloc[0], grna2[info_idx].iloc[0]]) if grna1[1].values[0] < grna2[1].values[0] else pd.concat(
+            [grna2[info_idx].iloc[0], grna1[info_idx].iloc[0]])
         merge_df[28] = gene_id
         merge_df[29] = gene_name
         merge_df[30] = distance
         merge_df = merge_df.reset_index(drop=True)
         merge_df = pd.DataFrame(merge_df).T
-        # print(merge_df)
-        merge_df = merge_df[[28, 29, 30] + list(range(28))]
-        # merge_df = distance + grna1[info_idx]
-        # print(grna2)
+        merge_df = merge_df[[24, 25, 26] + list(range(24))]
         res_li.append(merge_df)
-    
     return res_li
 
-def is_pair() -> None:
+
+def add_pair_id() -> None:
+    ...
+
+
+def low_ranking(low_df: pd.DataFrame) -> pd.DataFrame:
     ...
 
 
@@ -70,7 +72,7 @@ def dual(raw_db: str) -> pd.DataFrame:
         # 先按照方向分组
         df_pos = sub_df[sub_df[5] == '+']
         df_neg = sub_df[sub_df[5] == '-']
-        all_pair_li = []
+        low_pair_li = []
         filter_pair_li = []
         for _, grna1 in df_pos.iterrows():
             # 若过滤前组合数小于20 输出原始排列结果 否则筛选
@@ -88,10 +90,10 @@ def dual(raw_db: str) -> pd.DataFrame:
                 grna_start = grna1[6]
                 grna_end = grna1[7]
                 grna_middle = (grna_end + grna_start) / 2
-                middle_start_left = grna_middle - 10000
+                middle_start_left = grna_middle - 5000
                 middle_end_left = grna_middle - 50
                 middle_start_right = grna_middle + 50
-                middle_end_right = grna_middle + 10000
+                middle_end_right = grna_middle + 5000
                 filter_candidate_df['grna_middle'] = (
                     filter_candidate_df[6] + filter_candidate_df[7]) / 2
                 filter_candidate_df = filter_candidate_df[
@@ -100,22 +102,30 @@ def dual(raw_db: str) -> pd.DataFrame:
                         filter_candidate_df['grna_middle'] < middle_end_right)
                 ]
                 del filter_candidate_df['grna_middle']
-            # 将正向grna和负向过滤候选加入pair li   
+            # 将正向grna和负向过滤候选加入filter pair li
             for __, grna2 in filter_candidate_df.iterrows():
                 grna1_df = pd.DataFrame(grna1).T
                 grna2_df = pd.DataFrame(grna2).T
                 filter_pair_li.append([grna1_df, grna2_df])
-            # 将正向grna和负向原始候选加入pair li
-            for __, grna2 in df_neg.iterrows():
+            # 将正向grna和负向low候选加入low pair li
+            low_df = df_neg[~df_neg[1].isin(filter_candidate_df[1])]
+            for __, grna2 in low_df.iterrows():
                 grna1_df = pd.DataFrame(grna1).T
                 grna2_df = pd.DataFrame(grna2).T
-                all_pair_li.append([grna1_df, grna2_df])
-        # 处理final pair li 过滤后结果不足20则采用原始结果
-        final_pair_li = all_pair_li if len(filter_pair_li) < 20 else filter_pair_li
+                low_pair_li.append([grna1_df, grna2_df])
+        # 对low进行划分等级并排序
+
+        # 处理final pair li 过滤后结果不足20条则从low_sort补充至20条 filter distance从小到大
+        filter_pair_li.sort(key=lambda x:abs((x[1][8].values[0] + (x[1][5].astype(str) + "0.5").astype(float).values[0])-(x[0][8].values[0])+ (x[0][5].astype(str) + "0.5").astype(float)).values[0])
+        final_pair_li = filter_pair_li[:20] if len(
+            filter_pair_li) >= 20 else filter_pair_li + low_pair_li[:20 - len(filter_pair_li)]
+
         all_res_li += extract_pair_grna_info(final_pair_li)
-    # 8589908  8590507  9140859  9141958   
-    print(pd.concat(all_res_li))       
-                
+    # 8589908  8590507  9140859  9141958
+    # 拼接结果 添加pair id
+    all_pair_df = pd.concat(all_res_li)
+    print(all_pair_df)
+
 def run_dual(nc_no: str) -> None:
     t1 = time.time()
     raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_20/{nc_no}.tsv"
