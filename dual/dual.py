@@ -129,7 +129,7 @@ def dual(raw_db: str) -> pd.DataFrame:
 
 def run_dual(nc_no: str) -> None:
     t1 = time.time()
-    raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_20/{nc_no}.tsv"
+    raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50/{nc_no}.tsv"
     output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/dual/{nc_no}.tsv"
     if Path(output).exists():
         print(f"{nc_no} exists !!!")

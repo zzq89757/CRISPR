@@ -57,7 +57,7 @@ def low_mark(raw_db: str) -> pd.DataFrame:
 
 def run_mark(nc_no: str) -> None:
     t1 = time.time()
-    print(f"{nc_no} start !!!")
+    # print(f"{nc_no} start !!!")
     raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/snp_mark/{nc_no}.tsv"
     mark_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/low_mark/{nc_no}.tsv"
     filter_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50/{nc_no}.tsv"
