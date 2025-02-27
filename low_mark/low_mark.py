@@ -1,4 +1,5 @@
 from pathlib import Path
+import time
 import pandas as pd
 from sys import path
 path.append("/mnt/ntc_data/wayne/Repositories/CRISPR/")
@@ -41,13 +42,13 @@ def low_mark(raw_db: str) -> pd.DataFrame:
         )
         # 删除临时列
         sub_df = sub_df.drop(columns=['sum_score', 'tran_num', 'diff_score'])
-        # 选取前二十个
-        sub_df = sub_df.head(20)
+        # 选取前五十个
+        sub_df = sub_df.head(50)
         # 合并所有子 DataFrame
         sub_dfs.append(sub_df)
     new_df = pd.concat(sub_dfs, ignore_index=True)
     mark_df = pd.concat(mark_dfs, ignore_index=True)
-    # 调整filter20列顺序
+    # 调整filter50列顺序
     new_header = [24] + list(range(21)) + [22, 21, "L", 23]
     # 调整mark列顺序
     mark_header = [24] + list(range(21)) + [22, 21, "L", 23]
@@ -55,9 +56,11 @@ def low_mark(raw_db: str) -> pd.DataFrame:
 
 
 def run_mark(nc_no: str) -> None:
+    t1 = time.time()
+    print(f"{nc_no} start !!!")
     raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/snp_mark/{nc_no}.tsv"
     mark_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/low_mark/{nc_no}.tsv"
-    filter_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_20/{nc_no}.tsv"
+    filter_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50/{nc_no}.tsv"
     if Path(filter_output).exists():
         print(f"{nc_no} exists !!!")
         return
@@ -65,7 +68,8 @@ def run_mark(nc_no: str) -> None:
     # 保存为tsv
     mark_df.to_csv(mark_output, sep="\t", header=None, index=None)
     new_df.to_csv(filter_output, sep="\t", header=None, index=None)
-
+    print(f"{nc_no} finished,time cost:{time.time() - t1}!!!")
+    
 
 def main() -> None:
     nc_no = "NC_000024.10"
