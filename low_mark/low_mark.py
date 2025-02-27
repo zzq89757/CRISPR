@@ -10,6 +10,7 @@ from generate_split_ori import async_in_iterable_structure
 def low_mark(raw_db: str) -> pd.DataFrame:
     # 合并所有子 DataFrame
     sub_dfs = []
+    sub20_dfs = []
     mark_dfs = []
     # 读取标记SNP后的原始文件
     df = tsv2df(raw_db, type_li=[])
@@ -44,15 +45,16 @@ def low_mark(raw_db: str) -> pd.DataFrame:
         sub_df = sub_df.drop(columns=['sum_score', 'tran_num', 'diff_score'])
         # 选取前五十个
         sub_df = sub_df.head(50)
+        sub20_df = sub_df.head(20)
         # 合并所有子 DataFrame
         sub_dfs.append(sub_df)
+        sub20_dfs.append(sub20_df)
     new_df = pd.concat(sub_dfs, ignore_index=True)
+    new20_df = pd.concat(sub20_dfs, ignore_index=True)
     mark_df = pd.concat(mark_dfs, ignore_index=True)
-    # 调整filter50列顺序
+    # 调整列顺序
     new_header = [24] + list(range(21)) + [22, 21, "L", 23]
-    # 调整mark列顺序
-    mark_header = [24] + list(range(21)) + [22, 21, "L", 23]
-    return mark_df[mark_header], new_df[new_header]
+    return mark_df[new_header], new_df[new_header], new20_df[new_header]
 
 
 def run_mark(nc_no: str) -> None:
@@ -61,18 +63,19 @@ def run_mark(nc_no: str) -> None:
     raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/snp_mark/{nc_no}.tsv"
     mark_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/low_mark/{nc_no}.tsv"
     filter_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50/{nc_no}.tsv"
+    filter20_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_20/{nc_no}.tsv"
     if Path(filter_output).exists():
         print(f"{nc_no} exists !!!")
         return
-    mark_df, new_df = low_mark(raw_db)
+    mark_df, new_df, new20_df = low_mark(raw_db)
     # 保存为tsv
     mark_df.to_csv(mark_output, sep="\t", header=None, index=None)
     new_df.to_csv(filter_output, sep="\t", header=None, index=None)
+    new20_df.to_csv(filter20_output, sep="\t", header=None, index=None)
     print(f"{nc_no} finished,time cost:{time.time() - t1}!!!")
     
 
 def main() -> None:
-    nc_no = "NC_000024.10"
     nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
