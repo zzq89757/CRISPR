@@ -115,12 +115,12 @@ def dual(raw_db: str) -> pd.DataFrame:
             sorted_unfiltered_idx_pair_li = sorted(unfiltered_idx_pair_li, key=lambda x: (distance_rank(x[3]), -sum_score(sub_df.loc[x[0]], sub_df.loc[x[1]])))
             # 去unfiltered回补
             final_idx_pair_li += unfiltered_idx_pair_li[:20-len(filtered_idx_pair_li)]
-        # final_idx_pair_li 排序
+        # final_idx_pair_li 先按distance从小到大排列，再按gRNA Pair ID从小到大排列
         sorted_final_idx_pair_li = sorted(final_idx_pair_li, key= lambda x: (x[3], x[2]))
         # 将sorted_final_idx_pair_li的数据进行信息拼接并添加pair id
         res_df = transform_index_pair_li(sorted_final_idx_pair_li, sub_df)
         filter_df_li.append(res_df)
-    # 合并所有子结果 并按照distance从小到大排列，如果distance一样，按gRNA Pair ID从小到大排列
+    # 合并所有子结果
     all_df = pd.concat(all_df_li, ignore_index=True)
     filter_df = pd.concat(filter_df_li, ignore_index=True)
     return all_df, filter_df
@@ -146,8 +146,8 @@ def main() -> None:
     nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    # async_in_iterable_structure(run_dual, nc_li, 24)
-    run_dual(nc_li[-1])
+    async_in_iterable_structure(run_dual, nc_li, 24)
+    # run_dual(nc_li[-1])
 
 
 if __name__ == "__main__":
