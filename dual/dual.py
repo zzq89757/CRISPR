@@ -9,41 +9,6 @@ from generate_split_ori import async_in_iterable_structure
 pd.options.mode.copy_on_write = True
 
 
-def extract_pair_grna_info(pair_list: list) -> list:
-    # pair list 为二维数组 每个元素为成对df
-    res_li = []
-    for pair in pair_list:
-        grna1 = pair[0]
-        grna2 = pair[1]
-        # 提取方向列计算切点偏移量
-        grna1_offset = grna1[5].astype(str) + "0.5"
-        grna2_offset = grna2[5].astype(str) + "0.5"
-        # 记录公共信息Gene ID、gene name
-        gene_id = grna1[10].values[0]
-        gene_name = grna1[9].values[0]
-        # 计算距离
-        distance = int(abs((grna1[8] + grna1_offset.astype(float)).values[0] -
-                       (grna2[8] + grna2_offset.astype(float)).values[0]))
-
-        # 分别提取每条grna的id、序列、pam、flank、location、tran cov、strand orientation、score、snp
-        info_idx = [0, 1, 21, 2, 3, 23, 13, 17, 5, 19, 22, 25]
-        merge_df = pd.concat(
-            [grna1[info_idx].iloc[0], grna2[info_idx].iloc[0]]) if grna1[1].values[0] < grna2[1].values[0] else pd.concat(
-            [grna2[info_idx].iloc[0], grna1[info_idx].iloc[0]])
-        merge_df[28] = gene_id
-        merge_df[29] = gene_name
-        merge_df[30] = distance
-        merge_df = merge_df.reset_index(drop=True)
-        merge_df = pd.DataFrame(merge_df).T
-        merge_df = merge_df[[24, 25, 26] + list(range(24))]
-        res_li.append(merge_df)
-    return res_li
-
-
-def add_pair_id() -> None:
-    ...
-
-
 def distance_cal(grna1_df: pd.Series, grna2_df: pd.Series) -> int:
     # 切点距离间隔 （含方向偏移量校正）
     distance = abs(int((grna1_df[8] + float(grna1_df[5] + "0.5")) - (grna2_df[8] + float(grna2_df[5] + "0.5"))))  
@@ -152,13 +117,9 @@ def dual(raw_db: str) -> pd.DataFrame:
         all_df_li.append(res_df)
     # 合并所有子结果 并按照distance从小到大排列，如果distance一样，按gRNA Pair ID从小到大排列
     all_df = pd.concat(all_df_li, ignore_index=True)
-    return all_df   
-        
+    return all_df    
         
     # # 8589908  8590507  9140859  9141958
-    # # 拼接结果 添加pair id
-    # all_pair_df = pd.concat(all_res_li)
-    # print(all_pair_df)
 
 def run_dual(nc_no: str) -> None:
     t1 = time.time()
