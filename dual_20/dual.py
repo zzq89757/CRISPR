@@ -44,11 +44,12 @@ def filter_mark(distance: int, grna1_df: pd.Series, grna2_df: pd.Series) -> int:
 def transform_index_pair_li(idx_pair_li: list, gene_df: pd.DataFrame) -> pd.DataFrame:
     all_pair_df_li = []
     for idx_pair in idx_pair_li:
-        idx1, idx2, pair_id, distance, filter_flag = idx_pair
+        idx1, idx2, raw_pair_id, distance, filter_flag = idx_pair
         grna1 = gene_df.loc[idx1]
         grna2 = gene_df.loc[idx2]
         gene_id = grna1[10]
         gene_name = grna1[9]
+        pair_id = f"{gene_name}[pair#{raw_pair_id}]"
         # 分别提取每条grna的id、序列、pam、flank、location、tran cov、strand orientation、score、snp
         info_idx = [0, 1, 21, 2, 3, 23, 13, 17, 5, 19, 22, 25]
         # 拼接两行 添加gene_ID	gene_name	pair_ID	distance
