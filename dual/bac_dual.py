@@ -9,134 +9,127 @@ from generate_split_ori import async_in_iterable_structure
 pd.options.mode.copy_on_write = True
 
 
-def extract_pair_grna_info(pair_list: list) -> list:
-    # pair list 为二维数组 每个元素为成对df
-    res_li = []
-    for pair in pair_list:
-        grna1 = pair[0]
-        grna2 = pair[1]
-        # 提取方向列计算切点偏移量
-        grna1_offset = grna1[5].astype(str) + "0.5"
-        grna2_offset = grna2[5].astype(str) + "0.5"
-        # 记录公共信息Gene ID、gene name
-        gene_id = grna1[10].values[0]
-        gene_name = grna1[9].values[0]
-        # 计算距离
-        distance = int(abs((grna1[8] + grna1_offset.astype(float)).values[0] -
-                       (grna2[8] + grna2_offset.astype(float)).values[0]))
+def distance_cal(grna1_df: pd.Series, grna2_df: pd.Series) -> int:
+    # 切点距离间隔 （含方向偏移量校正）
+    distance = abs(int((grna1_df[8] + float(grna1_df[5] + "0.5")) - (grna2_df[8] + float(grna2_df[5] + "0.5"))))  
+    return distance
 
+
+def distance_rank(distance: int) -> int:
+    if distance > 50000:
+        return 3
+    if distance >= 10000:
+        return 2
+    if distance >= 50:
+        return 1
+    return 4
+
+
+def sum_score(grna1_df: pd.Series, grna2_df: pd.Series) -> float:
+    return grna1_df[19] + grna2_df[19] + grna1_df[22] + grna2_df[22]
+
+
+def filter_mark(distance: int, grna1_df: pd.Series, grna2_df: pd.Series) -> int:
+    # 距离间隔判断
+    if distance <= 50 or distance >= 5000:
+        return 0
+    # 分数差值判断
+    cfd_diff = abs(grna1_df[19] - grna2_df[19])
+    rs2_diff = abs(grna1_df[22] - grna2_df[22])
+    if cfd_diff > 20 or rs2_diff > 20:
+        return 0
+    return 1
+
+
+def transform_index_pair_li(idx_pair_li: list, gene_df: pd.DataFrame) -> pd.DataFrame:
+    all_pair_df_li = []
+    for idx_pair in idx_pair_li:
+        idx1, idx2, pair_id, distance, filter_flag = idx_pair
+        grna1 = gene_df.loc[idx1]
+        grna2 = gene_df.loc[idx2]
+        gene_id = grna1[10]
+        gene_name = grna1[9]
         # 分别提取每条grna的id、序列、pam、flank、location、tran cov、strand orientation、score、snp
         info_idx = [0, 1, 21, 2, 3, 23, 13, 17, 5, 19, 22, 25]
-        merge_df = pd.concat(
-            [grna1[info_idx].iloc[0], grna2[info_idx].iloc[0]]) if grna1[1].values[0] < grna2[1].values[0] else pd.concat(
-            [grna2[info_idx].iloc[0], grna1[info_idx].iloc[0]])
-        merge_df[28] = gene_id
-        merge_df[29] = gene_name
-        merge_df[30] = distance
-        merge_df = merge_df.reset_index(drop=True)
-        merge_df = pd.DataFrame(merge_df).T
-        merge_df = merge_df[[24, 25, 26] + list(range(24))]
-        res_li.append(merge_df)
-    return res_li
-
-
-def add_pair_id() -> None:
-    ...
-
-
-def low_ranking(low_df: pd.DataFrame) -> pd.DataFrame:
-    ...
+        # 拼接两行 添加gene_ID	gene_name	pair_ID	distance
+        merge_ser = pd.concat([pd.Series([gene_id, gene_name, pair_id, distance]), grna1[info_idx], grna2[info_idx]], ignore_index=True)
+        # 转换为df并转置
+        merge_df = pd.DataFrame(merge_ser).T
+        all_pair_df_li.append(merge_df)
+    # 合并所有子结果 并按照distance从小到大排列，如果distance一样，按gRNA Pair ID从小到大排列
+    all_pair_df = pd.concat(all_pair_df_li, ignore_index=True)
+    return all_pair_df
 
 
 def dual(raw_db: str) -> pd.DataFrame:
     # 读取filter20 数据库
     df = tsv2df(raw_db, [])
-    all_res_li = []
+    all_df_li = []
     # 按照基因分组
     for gene, sub_df in df.groupby(9, sort=False):
-        # print(gene,end="\n")
+        # print(gene,end="\t")
         grna_num = len(sub_df)
         # 若只有一条 无法成对 跳过
         if grna_num == 1:
             continue
-        # 若只有两条 考虑方向后配对并输出信息 并且pari id为1
-        if grna_num == 2:
-            grna1_df = sub_df.iloc[[0]]
-            grna2_df = sub_df.iloc[[1]]
-            if grna1_df[5].values[0] == grna2_df[5].values[0]:
-                continue
-            all_res_li += extract_pair_grna_info([[grna1_df, grna2_df]])
-            continue
-        # 两条以上的情况 暂时有放回
+        # 两条及以上的情况 暂时有放回
         sub_df = sub_df.reset_index(drop=True)
         # 先按照方向分组
         df_pos = sub_df[sub_df[5] == '+']
         df_neg = sub_df[sub_df[5] == '-']
-        low_pair_li = []
-        filter_pair_li = []
-        for _, grna1 in df_pos.iterrows():
-            # 若过滤前组合数小于20 输出原始排列结果 否则筛选
-            if len(df_pos) * len(df_neg) > 20:
-                # 两个分数差值都在20以内
-                cfd_score = grna1[19]
-                cfd_low = cfd_score - 20
-                cfd_high = cfd_score + 20
-                rs2_score = grna1[22]
-                rs2_low = rs2_score - 20
-                rs2_high = rs2_score + 20
-                filter_candidate_df = df_neg[(df_neg[19] <= cfd_high) & (df_neg[19] >= cfd_low) & (
-                    df_neg[22] <= rs2_high) & (df_neg[22] >= rs2_low)]
-                # 两条gRNA中点间隔在50-1wbp
-                grna_start = grna1[6]
-                grna_end = grna1[7]
-                grna_middle = (grna_end + grna_start) / 2
-                middle_start_left = grna_middle - 5000
-                middle_end_left = grna_middle - 50
-                middle_start_right = grna_middle + 50
-                middle_end_right = grna_middle + 5000
-                filter_candidate_df['grna_middle'] = (
-                    filter_candidate_df[6] + filter_candidate_df[7]) / 2
-                filter_candidate_df = filter_candidate_df[
-                    (middle_start_left < filter_candidate_df['grna_middle']) & (filter_candidate_df['grna_middle'] < middle_end_left) |
-                    (middle_start_right < filter_candidate_df['grna_middle']) & (
-                        filter_candidate_df['grna_middle'] < middle_end_right)
-                ]
-                del filter_candidate_df['grna_middle']
-            # 将正向grna和负向过滤候选加入filter pair li
-            for __, grna2 in filter_candidate_df.iterrows():
-                grna1_df = pd.DataFrame(grna1).T
-                grna2_df = pd.DataFrame(grna2).T
-                filter_pair_li.append([grna1_df, grna2_df])
-            # 将正向grna和负向low候选加入low pair li
-            low_df = df_neg[~df_neg[1].isin(filter_candidate_df[1])]
-            for __, grna2 in low_df.iterrows():
-                grna1_df = pd.DataFrame(grna1).T
-                grna2_df = pd.DataFrame(grna2).T
-                low_pair_li.append([grna1_df, grna2_df])
-        # 对low进行划分等级并排序
-
-        # 处理final pair li 过滤后结果不足20条则从low_sort补充至20条 filter distance从小到大
-        filter_pair_li.sort(key=lambda x:abs((x[1][8].values[0] + (x[1][5].astype(str) + "0.5").astype(float).values[0])-(x[0][8].values[0])+ (x[0][5].astype(str) + "0.5").astype(float)).values[0])
+        # 跳过只有一个方向的
+        if len(df_pos) == 0 or len(df_neg) == 0:continue
+        # 直接穷举所有pair 按照min rawID 从小到大排序
+        all_idx_pair_li = []
+        for idx1 in df_pos.index:          
+            grna_pos = df_pos.loc[idx1]
+            pos_rawID = grna_pos[1]
+            for idx2 in df_neg.index:
+                grna_neg = df_neg.loc[idx2]
+                neg_rawID = grna_neg[1]
+                # 计算distance
+                distance = distance_cal(grna_pos, grna_neg)
+                # 过滤器筛查
+                filter_passed = filter_mark(distance, grna_pos, grna_neg)
+                # 比较正负向rawID大小 并将正负索引值按照其rawID从小到大排序再加上min rawID以及distance和filter标记(默认为0 通过过滤器则为1)后存入数组
+                tmp_li = [idx1, idx2, pos_rawID, distance, filter_passed] if pos_rawID < neg_rawID else [idx2, idx1, neg_rawID, distance, filter_passed]
+                all_idx_pair_li.append(tmp_li)
+        # 对all_idx_pair_li按照min rawID从小到大进行排序 索引号+1即为原始pairID
+        all_idx_pair_li.sort(key=lambda x:x[2])
+        # 将all_idx_pair_li中的minrawID改为pairID号(索引+1)
+        for idx in range(len(all_idx_pair_li)):
+            all_idx_pair_li[idx][2] = idx + 1
+        # 按照过滤器分离all_idx_pair_li 并将filter li 按照距离排序
+        filtered_idx_pair_li = [x for x in all_idx_pair_li if x[-1]]
+        filtered_idx_pair_li.sort(key=lambda x:x[3])
+        # 若filter已足够 则取前二十个
+        final_idx_pair_li = filtered_idx_pair_li[:20]
+        # 从unfilter 回补
+        if len(filtered_idx_pair_li) < 20:
+            unfiltered_idx_pair_li = [x for x in all_idx_pair_li if x[-1] == 0]
+            # 对unfiltered_idx_pair_li 按照距离分级(50bp-10kb；10kb-50kb；>50kb)以及总分从高到低排序
+            sorted_unfiltered_idx_pair_li = sorted(unfiltered_idx_pair_li, key=lambda x: (distance_rank(x[3]), -sum_score(sub_df.loc[x[0]], sub_df.loc[x[1]])))
+            # 去unfiltered回补
+            final_idx_pair_li += unfiltered_idx_pair_li[:20-len(filtered_idx_pair_li)]
+        # 将filtered_idx_pair_li的数据进行信息拼接并添加pair id
+        res_df = transform_index_pair_li(final_idx_pair_li, sub_df)
+        # print(res_df)
+        all_df_li.append(res_df)
+    # 合并所有子结果 并按照distance从小到大排列，如果distance一样，按gRNA Pair ID从小到大排列
+    all_df = pd.concat(all_df_li, ignore_index=True)
+    return all_df    
         
-        final_pair_li = filter_pair_li[:20] if len(
-            filter_pair_li) >= 20 else filter_pair_li + low_pair_li[:20 - len(filter_pair_li)]
-
-        all_res_li += extract_pair_grna_info(final_pair_li)
-    # 8589908  8590507  9140859  9141958
-    # 拼接结果 添加pair id
-    all_pair_df = pd.concat(all_res_li)
-    print(all_pair_df)
+    # # 8589908  8590507  9140859  9141958
 
 def run_dual(nc_no: str) -> None:
     t1 = time.time()
-    raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_20/{nc_no}.tsv"
+    raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50/{nc_no}.tsv"
     output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/dual/{nc_no}.tsv"
     if Path(output).exists():
         print(f"{nc_no} exists !!!")
         return
     new_df = dual(raw_db)
     print(f"dual time cost:{time.time() - t1}")
-    return
     # 保存为tsv
     new_df.to_csv(output, sep="\t", header=None, index=None)
 
