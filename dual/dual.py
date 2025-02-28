@@ -76,34 +76,44 @@ def filter_mark(distance: int, grna1_df: pd.Series, grna2_df: pd.Series) -> int:
     return 1
 
 
-def transform_index_pair_li(idx_pair_li: list) -> pd.DataFrame:
-    ...
+def transform_index_pair_li(idx_pair_li: list, gene_df: pd.DataFrame) -> pd.DataFrame:
+    all_pair_df_li = []
+    for idx_pair in idx_pair_li:
+        idx1, idx2, pair_id, distance, filter_flag = idx_pair
+        grna1 = gene_df.loc[idx1]
+        grna2 = gene_df.loc[idx2]
+        gene_id = grna1[10]
+        gene_name = grna1[9]
+        # 分别提取每条grna的id、序列、pam、flank、location、tran cov、strand orientation、score、snp
+        info_idx = [0, 1, 21, 2, 3, 23, 13, 17, 5, 19, 22, 25]
+        # 拼接两行 添加gene_ID	gene_name	pair_ID	distance
+        merge_ser = pd.concat([pd.Series([gene_id, gene_name, pair_id, distance]), grna1[info_idx], grna2[info_idx]], ignore_index=True)
+        # 转换为df并转置
+        merge_df = pd.DataFrame(merge_ser).T
+        all_pair_df_li.append(merge_df)
+    # 合并所有子结果 并按照distance从小到大排列，如果distance一样，按gRNA Pair ID从小到大排列
+    all_pair_df = pd.concat(all_pair_df_li, ignore_index=True)
+    return all_pair_df
 
 
 def dual(raw_db: str) -> pd.DataFrame:
     # 读取filter20 数据库
     df = tsv2df(raw_db, [])
-    all_res_li = []
+    all_df_li = []
     # 按照基因分组
     for gene, sub_df in df.groupby(9, sort=False):
-        print(gene,end="\t")
+        # print(gene,end="\t")
         grna_num = len(sub_df)
         # 若只有一条 无法成对 跳过
         if grna_num == 1:
             continue
-        # 若只有两条 考虑方向后配对并输出信息 并且pari id为1
-        if grna_num == 2:
-            grna1_df = sub_df.iloc[0]
-            grna2_df = sub_df.iloc[1]
-            if grna1_df[5] == grna2_df[5]:
-                continue
-            distance = distance_cal(grna1_df, grna2_df)
-            continue
-        # 两条以上的情况 暂时有放回
+        # 两条及以上的情况 暂时有放回
         sub_df = sub_df.reset_index(drop=True)
         # 先按照方向分组
         df_pos = sub_df[sub_df[5] == '+']
         df_neg = sub_df[sub_df[5] == '-']
+        # 跳过只有一个方向的
+        if len(df_pos) == 0 or len(df_neg) == 0:continue
         # 直接穷举所有pair 按照min rawID 从小到大排序
         all_idx_pair_li = []
         for idx1 in df_pos.index:          
@@ -137,9 +147,12 @@ def dual(raw_db: str) -> pd.DataFrame:
             # 去unfiltered回补
             final_idx_pair_li += unfiltered_idx_pair_li[:20-len(filtered_idx_pair_li)]
         # 将filtered_idx_pair_li的数据进行信息拼接并添加pair id
-        print(final_idx_pair_li)
-        exit()
-        
+        res_df = transform_index_pair_li(final_idx_pair_li, sub_df)
+        # print(res_df)
+        all_df_li.append(res_df)
+    # 合并所有子结果 并按照distance从小到大排列，如果distance一样，按gRNA Pair ID从小到大排列
+    all_df = pd.concat(all_df_li, ignore_index=True)
+    return all_df   
         
         
     # # 8589908  8590507  9140859  9141958
@@ -156,7 +169,6 @@ def run_dual(nc_no: str) -> None:
         return
     new_df = dual(raw_db)
     print(f"dual time cost:{time.time() - t1}")
-    return
     # 保存为tsv
     new_df.to_csv(output, sep="\t", header=None, index=None)
 
