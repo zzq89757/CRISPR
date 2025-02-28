@@ -65,6 +65,7 @@ def dual(raw_db: str) -> pd.DataFrame:
     # 读取filter20 数据库
     df = tsv2df(raw_db, [])
     all_df_li = []
+    filter_df_li = []
     # 按照基因分组
     for gene, sub_df in df.groupby(9, sort=False):
         # print(gene,end="\t")
@@ -99,6 +100,9 @@ def dual(raw_db: str) -> pd.DataFrame:
         # 将all_idx_pair_li中的minrawID改为pairID号(索引+1)
         for idx in range(len(all_idx_pair_li)):
             all_idx_pair_li[idx][2] = idx + 1
+        # 将all_idx_pair_li的数据进行信息拼接并添加pair id
+        res_df = transform_index_pair_li(all_idx_pair_li, sub_df)
+        all_df_li.append(res_df)        
         # 按照过滤器分离all_idx_pair_li 并将filter li 按照距离排序
         filtered_idx_pair_li = [x for x in all_idx_pair_li if x[-1]]
         filtered_idx_pair_li.sort(key=lambda x:x[3])
@@ -111,27 +115,31 @@ def dual(raw_db: str) -> pd.DataFrame:
             sorted_unfiltered_idx_pair_li = sorted(unfiltered_idx_pair_li, key=lambda x: (distance_rank(x[3]), -sum_score(sub_df.loc[x[0]], sub_df.loc[x[1]])))
             # 去unfiltered回补
             final_idx_pair_li += unfiltered_idx_pair_li[:20-len(filtered_idx_pair_li)]
-        # 将filtered_idx_pair_li的数据进行信息拼接并添加pair id
-        res_df = transform_index_pair_li(final_idx_pair_li, sub_df)
-        # print(res_df)
-        all_df_li.append(res_df)
+        # final_idx_pair_li 排序
+        sorted_final_idx_pair_li = sorted(final_idx_pair_li, key= lambda x: (x[3], x[2]))
+        # 将sorted_final_idx_pair_li的数据进行信息拼接并添加pair id
+        res_df = transform_index_pair_li(sorted_final_idx_pair_li, sub_df)
+        filter_df_li.append(res_df)
     # 合并所有子结果 并按照distance从小到大排列，如果distance一样，按gRNA Pair ID从小到大排列
     all_df = pd.concat(all_df_li, ignore_index=True)
-    return all_df    
+    filter_df = pd.concat(filter_df_li, ignore_index=True)
+    return all_df, filter_df
         
     # # 8589908  8590507  9140859  9141958
 
 def run_dual(nc_no: str) -> None:
     t1 = time.time()
     raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50/{nc_no}.tsv"
-    output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/dual/{nc_no}.tsv"
+    raw_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/dual_raw/{nc_no}.tsv"
+    output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/dual_20/{nc_no}.tsv"
     if Path(output).exists():
         print(f"{nc_no} exists !!!")
         return
-    new_df = dual(raw_db)
-    print(f"dual time cost:{time.time() - t1}")
+    raw_dual_df, new_df = dual(raw_db)
     # 保存为tsv
+    raw_dual_df.to_csv(raw_output, sep="\t", header=None, index=None)
     new_df.to_csv(output, sep="\t", header=None, index=None)
+    print(f"dual time cost:{time.time() - t1}")
 
 
 def main() -> None:
