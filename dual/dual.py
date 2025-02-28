@@ -76,13 +76,17 @@ def filter_mark(distance: int, grna1_df: pd.Series, grna2_df: pd.Series) -> int:
     return 1
 
 
+def transform_index_pair_li(idx_pair_li: list) -> pd.DataFrame:
+    ...
+
+
 def dual(raw_db: str) -> pd.DataFrame:
     # 读取filter20 数据库
     df = tsv2df(raw_db, [])
     all_res_li = []
     # 按照基因分组
     for gene, sub_df in df.groupby(9, sort=False):
-        # print(gene,end="\n")
+        print(gene,end="\t")
         grna_num = len(sub_df)
         # 若只有一条 无法成对 跳过
         if grna_num == 1:
@@ -100,7 +104,6 @@ def dual(raw_db: str) -> pd.DataFrame:
         # 先按照方向分组
         df_pos = sub_df[sub_df[5] == '+']
         df_neg = sub_df[sub_df[5] == '-']
-        filter_pair_li = []
         # 直接穷举所有pair 按照min rawID 从小到大排序
         all_idx_pair_li = []
         for idx1 in df_pos.index:          
@@ -133,15 +136,12 @@ def dual(raw_db: str) -> pd.DataFrame:
             sorted_unfiltered_idx_pair_li = sorted(unfiltered_idx_pair_li, key=lambda x: (distance_rank(x[3]), -sum_score(sub_df.loc[x[0]], sub_df.loc[x[1]])))
             # 去unfiltered回补
             final_idx_pair_li += unfiltered_idx_pair_li[:20-len(filtered_idx_pair_li)]
-        # 将filtered_idx_pair_li的数据进行信息拼接
+        # 将filtered_idx_pair_li的数据进行信息拼接并添加pair id
+        print(final_idx_pair_li)
         exit()
         
         
         
-    #     final_pair_li = filter_pair_li[:20] if len(
-    #         filter_pair_li) >= 20 else filter_pair_li + low_pair_li[:20 - len(filter_pair_li)]
-
-    #     all_res_li += extract_pair_grna_info(final_pair_li)
     # # 8589908  8590507  9140859  9141958
     # # 拼接结果 添加pair id
     # all_pair_df = pd.concat(all_res_li)
