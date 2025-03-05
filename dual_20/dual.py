@@ -48,12 +48,13 @@ def transform_index_pair_li(idx_pair_li: list, gene_df: pd.DataFrame) -> pd.Data
         grna1 = gene_df.loc[idx1]
         grna2 = gene_df.loc[idx2]
         gene_id = grna1[10]
+        chr_no = grna1[4]
         gene_name = grna1[9]
         pair_id = f"{gene_name}[pair#{raw_pair_id}]"
-        # 分别提取每条grna的id、序列、pam、flank、location、tran cov、strand orientation、score、snp
-        info_idx = [0, 1, 21, 2, 3, 23, 13, 17, 5, 19, 22, 25]
-        # 拼接两行 添加gene_ID	gene_name	pair_ID	distance
-        merge_ser = pd.concat([pd.Series([gene_id, gene_name, pair_id, distance]), grna1[info_idx], grna2[info_idx]], ignore_index=True)
+        # 分别提取每条grna的name(0),rawid(1)、upstream(21)、seq(2)、pam(3)、downstream(23)、orientation_chr(5)、cutsite_chr(8)、loc_gene(13)、tran cov(17)、orientation_gene(12)、cfd score(19)、rs2 score(22)、snp(25)
+        info_idx = [0, 1, 21, 2, 3, 23, 5, 8, 13, 17, 12, 19, 22, 25]
+        # 拼接两行 添加pair_ID distance gene_ID chr gene_name
+        merge_ser = pd.concat([pd.Series([pair_id, distance, gene_id, chr_no, gene_name]), grna1[info_idx], grna2[info_idx]], ignore_index=True)
         # 转换为df并转置
         merge_df = pd.DataFrame(merge_ser).T
         all_pair_df_li.append(merge_df)
@@ -147,8 +148,8 @@ def main() -> None:
     nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    async_in_iterable_structure(run_dual, nc_li, 24)
-    # run_dual(nc_li[-1])
+    # async_in_iterable_structure(run_dual, nc_li, 24)
+    run_dual(nc_li[-1])
 
 
 if __name__ == "__main__":
