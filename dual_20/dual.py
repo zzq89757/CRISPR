@@ -141,7 +141,7 @@ def run_dual(nc_no: str) -> None:
     # 保存为tsv
     raw_dual_df.to_csv(raw_output, sep="\t", header=None, index=None)
     new_df.to_csv(output, sep="\t", header=None, index=None)
-    print(f"dual time cost:{time.time() - t1}")
+    print(f"<{nc_no}> dual time cost:{round(time.time() - t1, 2)}s, raw line count:{len(raw_dual_df)}, dual_20 line count:{len(new_df)}")
 
 
 def main() -> None:
