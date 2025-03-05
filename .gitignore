@@ -7,7 +7,7 @@ tmp
 .nfs*
 *.xls*
 *log
-*gtf
+*.gtf
 *li
 *count
 tmp*
