@@ -1,4 +1,5 @@
 from pathlib import Path
+from collections import defaultdict
 import time
 import pandas as pd
 from sys import path
@@ -7,7 +8,7 @@ from utils.read_tsv import tsv2df
 from generate_split_ori import async_in_iterable_structure
 
 
-def low_mark(raw_db: str) -> pd.DataFrame:
+def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
     # 合并所有子 DataFrame
     sub_dfs = []
     # 读取标记SNP后的原始文件
@@ -20,8 +21,9 @@ def low_mark(raw_db: str) -> pd.DataFrame:
         sub_df = sub_df.reset_index(drop=True)
         sub_df.index += 1
         sub_df[24] = sub_df[8] + "[gRNA" + sub_df.index.astype(str) + "]"
-        print(sub_df)
-        exit()
+        # 根据基因起止添加分组信息
+        gene_start, gene_end = gene_pos_dict[gene]
+        
         # 标记 low score 若候选中包含low score(CFD score ≤ 0.1 && RS2 score ≤ 0.3)
         sub_df["L"] = ((sub_df[18] <= 0.1) | (sub_df[22] <= 0.3)).astype(int)
         # 将得分改为百分制并保留两位小数
@@ -59,7 +61,12 @@ def run_mark(nc_no: str) -> None:
     if Path(filter_output).exists():
         print(f"{nc_no} exists !!!")
         return
-    new_df = low_mark(raw_db)
+    # 读取基因位置信息并存为字典
+    gene_info_dict = defaultdict(list)
+    gene_info_df = pd.read_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/Gene_list.tsv",sep="\t",header=None)
+    for gene, start, end in zip(gene_info_df[0], gene_info_df[1], gene_info_df[2]):
+        gene_info_dict[gene] = [start, end]
+    new_df = low_mark(raw_db, gene_info_dict)
     # 保存为tsv
     new_df.to_csv(filter_output, sep="\t", header=None, index=None)
     print(f"{nc_no} finished,time cost:{time.time() - t1}!!!")
