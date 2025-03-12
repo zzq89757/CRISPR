@@ -7,6 +7,13 @@ path.append("/mnt/ntc_data/wayne/Repositories/CRISPR/")
 from utils.read_tsv import tsv2df
 from generate_split_ori import async_in_iterable_structure
 
+def gene_pos_group(start: int, end: int, cut_site: int) -> int:
+    # 将基因划分五等分 并根据gRNA切点位置将其归至区间
+    gene_len = end - start + 1
+    region_len = gene_len / 5
+    left_distance = cut_site - start
+    return int(left_distance // region_len)
+
 
 def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
     # 合并所有子 DataFrame
@@ -23,6 +30,7 @@ def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
         sub_df[24] = sub_df[8] + "[gRNA" + sub_df.index.astype(str) + "]"
         # 根据基因起止添加分组信息
         gene_start, gene_end = gene_pos_dict[gene]
+        sub_df['group'] = sub_df[7].apply(lambda x:gene_pos_group(gene_start, gene_end, x))
         
         # 标记 low score 若候选中包含low score(CFD score ≤ 0.1 && RS2 score ≤ 0.3)
         sub_df["L"] = ((sub_df[18] <= 0.1) | (sub_df[22] <= 0.3)).astype(int)
