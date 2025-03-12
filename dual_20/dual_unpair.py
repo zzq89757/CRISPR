@@ -68,7 +68,7 @@ def transform_index_pair_li(idx_pair_li: list, gene_df: pd.DataFrame) -> pd.Data
 
 
 def dual(raw_db: str) -> pd.DataFrame:
-    # 读取filter50 数据库
+    # 读取filter50_group 数据库
     df = tsv2df(raw_db, [])
     filter_df_li = []
     # 按照基因分组
@@ -128,7 +128,7 @@ def dual(raw_db: str) -> pd.DataFrame:
 
 def run_dual(nc_no: str) -> None:
     t1 = time.time()
-    raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50/{nc_no}.tsv"
+    raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50_group/{nc_no}.tsv"
     output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/dual_cd/{nc_no}.tsv"
     # 跳过已生成结果
     if Path(output).exists():
@@ -144,8 +144,8 @@ def main() -> None:
     nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    # async_in_iterable_structure(run_dual, nc_li, 24)
-    run_dual(nc_li[-1])
+    async_in_iterable_structure(run_dual, nc_li, 24)
+    # run_dual(nc_li[-1])
 
 
 if __name__ == "__main__":
