@@ -46,6 +46,7 @@ def transform_index_pair_li(idx_pair_li: list, gene_df: pd.DataFrame) -> pd.Data
         # 提取 grna1 grna2 信息
         grna1 = gene_df.loc[idx1]
         grna2 = gene_df.loc[idx2]
+        # 提取公共信息
         gene_id = grna1[10]
         chr_no = grna1[4]
         gene_name = grna1[9]
@@ -67,7 +68,7 @@ def transform_index_pair_li(idx_pair_li: list, gene_df: pd.DataFrame) -> pd.Data
 
 
 def dual(raw_db: str) -> pd.DataFrame:
-    # 读取filter20 数据库
+    # 读取filter50 数据库
     df = tsv2df(raw_db, [])
     filter_df_li = []
     # 按照基因分组
@@ -129,6 +130,7 @@ def run_dual(nc_no: str) -> None:
     t1 = time.time()
     raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50/{nc_no}.tsv"
     output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/dual_cd/{nc_no}.tsv"
+    # 跳过已生成结果
     if Path(output).exists():
         print(f"{nc_no} exists !!!")
         return
