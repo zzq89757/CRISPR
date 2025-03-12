@@ -24,6 +24,8 @@ def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
     df[0] = df[0].apply(lambda x: x.split("_")[1])
     # 按照基因分组排序命名同时标记low score
     for gene, sub_df in df.groupby(by=8, sort=False):
+        # 已挑选的id 列表
+        picked_id_li = []
         # 添加gRNA名 格式为 hSLC16A1[gRNA3975]
         sub_df = sub_df.reset_index(drop=True)
         sub_df.index += 1
@@ -31,7 +33,6 @@ def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
         # 根据基因起止添加分组信息
         gene_start, gene_end = gene_pos_dict[gene]
         sub_df['group'] = sub_df[7].apply(lambda x:gene_pos_group(gene_start, gene_end, x))
-        
         # 标记 low score 若候选中包含low score(CFD score ≤ 0.1 && RS2 score ≤ 0.3)
         sub_df["L"] = ((sub_df[18] <= 0.1) | (sub_df[22] <= 0.3)).astype(int)
         # 将得分改为百分制并保留两位小数
@@ -49,10 +50,17 @@ def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
             by=['sum_score', 'tran_num', 'diff_score'],  # 排序优先级：和 -> tran_num -> 差值
             ascending=[False, False, True]       # 和降序，tran_num降序，差值升序
         )
+        # 按照区域分组pick 将各个组别前十进行标记 
+        picked_id_li += sub_df[sub_df['group']==0][0][:10].to_list()
+        picked_id_li += sub_df[sub_df['group']==1][0][:10].to_list()
+        picked_id_li += sub_df[sub_df['group']==2][0][:10].to_list()
+        picked_id_li += sub_df[sub_df['group']==3][0][:10].to_list()
+        picked_id_li += sub_df[sub_df['group']==4][0][:10].to_list()
+        sub_df['picked'] = sub_df[0].isin(picked_id_li)
+        # 若挑选的数目为50 直接筛出 否则回补
+        sub_df = pd.concat([sub_df[sub_df['picked']==True],sub_df[sub_df['picked']==False].head(50-len(picked_id_li))])
         # 删除临时列
-        sub_df = sub_df.drop(columns=['sum_score', 'tran_num', 'diff_score'])
-        # 选取前五十个
-        sub_df = sub_df.head(50)
+        sub_df = sub_df.drop(columns=['sum_score', 'tran_num', 'diff_score', 'group', 'picked'])
         # 合并所有子 DataFrame
         sub_dfs.append(sub_df)
     new_df = pd.concat(sub_dfs, ignore_index=True)
