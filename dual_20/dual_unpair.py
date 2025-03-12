@@ -101,15 +101,15 @@ def dual(raw_db: str) -> pd.DataFrame:
         # 按照过滤器分离all_idx_pair_li 并将filter li 按照距离排序
         filtered_idx_pair_li = [x for x in all_idx_pair_li if x[-1]]
         filtered_idx_pair_li.sort(key=lambda x:x[3])
-        # 若filter已足够 则取前二十个
-        final_idx_pair_li = filtered_idx_pair_li[:20]
+        # 若filter已足够 则取前五十个
+        final_idx_pair_li = filtered_idx_pair_li[:50]
         # 从unfilter 回补
-        if len(filtered_idx_pair_li) < 20:
+        if len(filtered_idx_pair_li) < 50:
             unfiltered_idx_pair_li = [x for x in all_idx_pair_li if x[-1] == 0]
             # 对unfiltered_idx_pair_li 按照距离分级(50bp-10kb；10kb-50kb；>50kb)以及总分从高到低排序
             sorted_unfiltered_idx_pair_li = sorted(unfiltered_idx_pair_li, key=lambda x: (distance_rank(x[3]), -sum_score(sub_df.loc[x[0]], sub_df.loc[x[1]])))
             # 去unfiltered回补
-            final_idx_pair_li += unfiltered_idx_pair_li[:20-len(filtered_idx_pair_li)]
+            final_idx_pair_li += unfiltered_idx_pair_li[:50-len(filtered_idx_pair_li)]
         # final_idx_pair_li 先按distance从小到大排列，再按gRNA Pair ID从小到大排列
         sorted_final_idx_pair_li = sorted(final_idx_pair_li, key= lambda x: (x[3], x[2]))
         # 将sorted_final_idx_pair_li的数据进行信息拼接并添加pair id
