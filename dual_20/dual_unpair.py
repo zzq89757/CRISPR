@@ -28,8 +28,8 @@ def sum_score(grna1_df: pd.Series, grna2_df: pd.Series) -> float:
 
 
 def filter_mark(distance: int, grna1_df: pd.Series, grna2_df: pd.Series) -> int:
-    # 距离间隔判断
-    if distance <= 50 or distance >= 5000:
+    # 距离间隔判断 间隔在30bp - 3kb之间
+    if distance < 30 or distance > 3000:
         return 0
     # 分数差值判断
     cfd_diff = abs(grna1_df[19] - grna2_df[19])
