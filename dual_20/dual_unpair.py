@@ -9,7 +9,7 @@ pd.options.mode.copy_on_write = True
 
 
 def distance_cal(grna1_df: pd.Series, grna2_df: pd.Series) -> int:
-    # 切点距离间隔 （含方向偏移量校正）
+    # 切点距离计算 （含方向偏移量校正）
     distance = abs(int((grna1_df[8] + float(grna1_df[5] + "0.5")) - (grna2_df[8] + float(grna2_df[5] + "0.5"))))  
     return distance
 
@@ -24,6 +24,7 @@ def distance_rank(distance: int) -> int:
 
 
 def sum_score(grna1_df: pd.Series, grna2_df: pd.Series) -> float:
+    # 计算成对gRNA的cfd和rs2总分
     return grna1_df[19] + grna2_df[19] + grna1_df[22] + grna2_df[22]
 
 
@@ -31,7 +32,7 @@ def filter_mark(distance: int, grna1_df: pd.Series, grna2_df: pd.Series) -> int:
     # 距离间隔判断 间隔在30bp - 3kb之间
     if distance < 30 or distance > 3000:
         return 0
-    # 分数差值判断
+    # 分数差值判断 需两种分数差值均小于20
     cfd_diff = abs(grna1_df[19] - grna2_df[19])
     rs2_diff = abs(grna1_df[22] - grna2_df[22])
     if cfd_diff > 20 or rs2_diff > 20:
@@ -42,13 +43,17 @@ def filter_mark(distance: int, grna1_df: pd.Series, grna2_df: pd.Series) -> int:
 def transform_index_pair_li(idx_pair_li: list, gene_df: pd.DataFrame) -> pd.DataFrame:
     all_pair_df_li = []
     for idx_pair in idx_pair_li:
+        # 提取idx pair li 信息
         idx1, idx2, raw_pair_id, distance, filter_flag = idx_pair
+        # 提取 grna1 grna2 信息
         grna1 = gene_df.loc[idx1]
         grna2 = gene_df.loc[idx2]
         gene_id = grna1[10]
         chr_no = grna1[4]
         gene_name = grna1[9]
+        # pair id 格式化
         pair_id = f"{gene_name}[pair#{raw_pair_id}]"
+        # 是否适用于AD10（FR则适用于AD10）
         is_cd = "n" if grna1[5] == grna2[5] else "y"
         # 分别提取每条grna的name(0),rawid(1)、upstream(21)、seq(2)、pam(3)、downstream(23)、orientation_chr(5)、cutsite_chr(8)、loc_gene(13)、tran cov(17)、orientation_gene(12)、cfd score(19)、rs2 score(22)、snp(25)
         info_idx = [0, 1, 21, 2, 3, 23, 5, 8, 13, 17, 12, 19, 22, 25]
@@ -56,6 +61,7 @@ def transform_index_pair_li(idx_pair_li: list, gene_df: pd.DataFrame) -> pd.Data
         merge_ser = pd.concat([pd.Series([pair_id, distance, gene_id, chr_no, gene_name, is_cd]), grna1[info_idx], grna2[info_idx]], ignore_index=True)
         # 转换为df并转置
         merge_df = pd.DataFrame(merge_ser).T
+        # 所有子结果存入列表等待合并
         all_pair_df_li.append(merge_df)
     # 合并所有子结果 并按照distance从小到大排列，如果distance一样，按gRNA Pair ID从小到大排列
     all_pair_df = pd.concat(all_pair_df_li, ignore_index=True)
@@ -109,7 +115,7 @@ def dual(raw_db: str) -> pd.DataFrame:
             # 对unfiltered_idx_pair_li 按照距离分级(50bp-10kb；10kb-50kb；>50kb)以及总分从高到低排序
             sorted_unfiltered_idx_pair_li = sorted(unfiltered_idx_pair_li, key=lambda x: (distance_rank(x[3]), -sum_score(sub_df.loc[x[0]], sub_df.loc[x[1]])))
             # 去unfiltered回补
-            final_idx_pair_li += unfiltered_idx_pair_li[:50-len(filtered_idx_pair_li)]
+            final_idx_pair_li += sorted_unfiltered_idx_pair_li[:50-len(filtered_idx_pair_li)]
         # final_idx_pair_li 先按distance从小到大排列，再按gRNA Pair ID从小到大排列
         sorted_final_idx_pair_li = sorted(final_idx_pair_li, key= lambda x: (x[3], x[2]))
         # 将sorted_final_idx_pair_li的数据进行信息拼接并添加pair id
