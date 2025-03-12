@@ -85,15 +85,15 @@ def run_mark(nc_no: str) -> None:
     new_df = low_mark(raw_db, gene_info_dict)
     # 保存为tsv
     new_df.to_csv(filter_output, sep="\t", header=None, index=None)
-    print(f"{nc_no} finished,time cost:{time.time() - t1}!!!")
+    print(f"{nc_no} finished,time cost:{time.time() - t1},filter_50 num {len(new_df)}!!!")
     
 
 def main() -> None:
     nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    # async_in_iterable_structure(run_mark, nc_li, 24)
-    run_mark(nc_li[-1])
+    async_in_iterable_structure(run_mark, nc_li, 24)
+    # run_mark(nc_li[-1])
 
 
 if __name__ == "__main__":
