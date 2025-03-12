@@ -15,12 +15,11 @@ def distance_cal(grna1_df: pd.Series, grna2_df: pd.Series) -> int:
 
 
 def distance_rank(distance: int) -> int:
-    if distance > 50000:
-        return 3
-    if distance >= 10000:
-        return 2
-    if distance >= 50:
-        return 1
+    # 将distance分为4个范围，30bp-5kb；5kb-10kb；10kb-50kb；>50kb 由于基因长度普遍在几kb 因此从小到大判断节省时间 30bp以内的优先级高于50kb以外
+    if distance < 30:return 3
+    if distance < 5000:return 0
+    if distance < 10000:return 1
+    if distance < 50000:return 2
     return 4
 
 
