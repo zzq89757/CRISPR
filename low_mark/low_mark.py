@@ -62,7 +62,7 @@ def run_mark(nc_no: str) -> None:
     # print(f"{nc_no} start !!!")
     raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/snp_mark/{nc_no}.tsv"
     mark_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/low_mark/{nc_no}.tsv"
-    filter_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50/{nc_no}.tsv"
+    filter_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50_group/{nc_no}.tsv"
     filter20_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_20/{nc_no}.tsv"
     if Path(filter_output).exists():
         print(f"{nc_no} exists !!!")
