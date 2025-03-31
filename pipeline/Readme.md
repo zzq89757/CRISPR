@@ -21,7 +21,7 @@ vcf来源 [https://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606/VCF/](https://f
 
 基因组序列来源：https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.40/
 
-<a href="https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.40/"> <image src="/mnt/ntc_data/wayne/Repositories/CRISPR/pipeline/ref_source.png" width=98% > </image> </a>
+<a href="https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.40/"> <image src="./ref_source.png" width=98% > </image> </a>
 
 <!-- [![基因组序列来源](ref_source.png)](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.40/) -->
 
