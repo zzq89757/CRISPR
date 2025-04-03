@@ -56,9 +56,21 @@ vcf来源 [https://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606/VCF/](https://f
 ### 7.CFD score
 进行CFD评分以及ot数记录
 
-！ 事先跑好cfd的原始结果
+Flashfry 建库....
+
+事先拼接fa文件并使用Flashfry跑好cfd的原始结果
+
+脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/search_ot.py](../score/CFD_Scoring/test/search_ot.py)
+
+过滤原始结果
+
+脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/filter_ot.py](../score/CFD_Scoring/test/filter_ot.py)
+
+
 
 脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/append_score.py](../append_score.py)
+
+
 
 ### 8.flanking and rs2 score
 
