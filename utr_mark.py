@@ -12,13 +12,22 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
     cds_df = tsv2df(cds_file_path,[])
     # 按照基因分组
     for gene, sub_exon_df in exon_df.groupby(0,sort=False):
-        # 若无cds（NR） 跳过
+        # 若exon无cds（NR） 跳过
         sub_cds_df = cds_df[cds_df[0]==gene]
         if sub_cds_df.empty:continue
-        print(sub_exon_df)
-        print(sub_cds_df)
+        gene_ori = ori_dict[gene]
+        # print(sub_exon_df)
+        # print(sub_cds_df)
+        # print(gene_ori)
         # 根据转录本分组 根据方向分别寻找UTR区域
-        
+        # for (exon_tran, sub_exon_tran_df),(cds_tran, sub_cds_tran_df) in zip(sub_exon_df.groupby(1,sort=False), sub_cds_df.groupby(1,sort=False)):
+        for exon_tran, sub_exon_tran_df in sub_exon_df.groupby(1,sort=False):
+            # 若exon对应转录本无cds（NR） 跳过
+            sub_cds_tran_df = sub_cds_df[sub_cds_df[1]==exon_tran]
+            if sub_cds_tran_df.empty:continue
+            print(exon_tran)
+            print(sub_exon_tran_df)
+            print(sub_cds_tran_df)
         # 
         
 
