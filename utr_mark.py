@@ -10,6 +10,7 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
     # 读取exon和cds region 文件
     exon_df = tsv2df(exon_file_path,[])
     cds_df = tsv2df(cds_file_path,[])
+    utr_region_dict = defaultdict(lambda :defaultdict(list))
     # 按照基因分组
     for gene, sub_exon_df in exon_df.groupby(0,sort=False):
         # 若exon无cds（NR） 跳过
@@ -26,24 +27,26 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
             # 若exon对应转录本无cds（NR） 跳过
             if sub_cds_tran_df.empty:continue
             # print(exon_tran)
-            print(sub_exon_tran_df)
-            print(sub_cds_tran_df)
-            # 根据方向分别寻找UTR区域
+            # print(sub_exon_tran_df)
+            # print(sub_cds_tran_df)
+            # 根据方向分别寻找UTR起始终止
             cds_start_idx = 0 if gene_ori == "+" else -1
             cds_end_idx = -1 - cds_start_idx
             cds_start = sub_cds_tran_df[2].to_numpy()[cds_start_idx]
             cds_end = sub_cds_tran_df[3].to_numpy()[cds_end_idx]
             exon_start = sub_exon_tran_df[2].to_numpy()[cds_start_idx]
             exon_end = sub_exon_tran_df[3].to_numpy()[cds_end_idx]
-            utr5_start = exon_start
-            utr5_end = cds_start - 1
-            utr3_start = cds_end + 1
-            utr3_end = exon_end
+            utr5_start = int(exon_start)
+            utr5_end = int(cds_start) - 1
+            utr3_start = int(cds_end) + 1
+            utr3_end = int(exon_end)
             # 将utr region 存入字典
+            utr_region_dict[gene]['UTR3'].append((utr3_start, utr3_end))
+            utr_region_dict[gene]['UTR5'].append((utr5_start, utr5_end))
             
-            
-            # 
-            # utr_start = 
+    # 拆分为 0->真utr : utr 并集 - cds并集 -1-> 5UTR 1-> 3UTR
+    print(utr_region_dict)        
+    
         
 
 
