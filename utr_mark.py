@@ -30,7 +30,9 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
     # 读取exon和cds region 文件
     exon_df = tsv2df(exon_file_path,[])
     cds_df = tsv2df(cds_file_path,[])  
-    exon_region_dict = defaultdict(lambda:defaultdict(list))  
+    exon_region_dict = defaultdict(lambda:defaultdict(list))
+    interval_exon_region_dict = defaultdict(lambda:defaultdict(list))
+    split_exon_region_dict = defaultdict(lambda:defaultdict(list))
     # 按照基因分组
     for gene, sub_exon_df in exon_df.groupby(0,sort=False):
         # 若exon无cds（NR） 跳过
@@ -64,11 +66,18 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
     
     # 分别对UTR5 UTR3 CDS 求区域并集 
     for gene in exon_region_dict.keys():
-        exon_region_dict[gene]["CDS"] = merge_intervals(exon_region_dict[gene]["CDS"])
-        exon_region_dict[gene]["UTR5"] = merge_intervals(exon_region_dict[gene]["UTR5"])
-        exon_region_dict[gene]["UTR3"] = merge_intervals(exon_region_dict[gene]["UTR3"])
+        interval_exon_region_dict[gene]["CDS"] = merge_intervals(exon_region_dict[gene]["CDS"])
+        interval_exon_region_dict[gene]["UTR5"] = merge_intervals(exon_region_dict[gene]["UTR5"])
+        interval_exon_region_dict[gene]["UTR3"] = merge_intervals(exon_region_dict[gene]["UTR3"])  
+    # 将区域拆分为 -1->5UTR,0->CDS,1->3UTR (真utr : utr 并集 - cds并集) 落在多个区域时用逗号分隔
+    # for gene in interval_exon_region_dict.keys():
+    #     split_exon_region_dict['-1']
+    
+    return interval_exon_region_dict
 
-    # 拆分为 -1->5UTR,0->CDS,1->3UTR (真utr : utr 并集 - cds并集) 落在多个区域时用逗号分隔
+
+def search_regions(grna_table: str, region_dict: defaultdict) -> pd.DataFrame:
+    ...
     
 
 
