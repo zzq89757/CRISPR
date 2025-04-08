@@ -103,6 +103,7 @@ def region_classify(gene_name: str, cut_pos: int, grna_ori: str, utr_pos_dict: d
     # 根据方向添加切点偏移量
     cut_pos_offset = cut_pos + float(grna_ori + "0.5")
     cds_region_li = utr_pos_dict[gene_name]["CDS"]
+    if not cds_region_li:return ""
     utr5_region_li = utr_pos_dict[gene_name]["UTR5"]
     utr3_region_li = utr_pos_dict[gene_name]["UTR3"]
     # 遍历每个区域 进行十进制数字累加
