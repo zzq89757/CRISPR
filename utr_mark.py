@@ -84,7 +84,11 @@ def region_code2str(region_code: int) -> str:
     1->utr5,2->cds,4->utr3
     -1->utr5,0->cds,1->utr3
     '''
+    # 若为0 直接返回空字符串
+    if not region_code:return ""
+    # 将代表切点落在的区域之和的十进制数字(1->utr5,2->cds,4->utr3)转为二进制
     bin_region_code = '{:03b}'.format(region_code)[::-1]
+    # -1->utr5,0->cds,1->utr3
     mark_li = ["-1", "0", "1"]
     res_li = [mark_li[i] for i in range(3) if int(bin_region_code[i])]
     return ",".join(res_li)
@@ -96,11 +100,12 @@ def region_classify(gene_name: str, cut_pos: int, grna_ori: str, utr_pos_dict: d
     -1->utr5,0->cds,1->utr3
     '''
     region_code = 0
+    # 根据方向添加切点偏移量
     cut_pos_offset = cut_pos + float(grna_ori + "0.5")
     cds_region_li = utr_pos_dict[gene_name]["CDS"]
     utr5_region_li = utr_pos_dict[gene_name]["UTR5"]
     utr3_region_li = utr_pos_dict[gene_name]["UTR3"]
-    
+    # 遍历每个区域 进行十进制数字累加
     for start, end in cds_region_li:
         if start < cut_pos_offset < end:
             region_code += 2
