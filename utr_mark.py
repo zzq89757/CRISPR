@@ -1,9 +1,12 @@
+from pathlib import Path
+import time
 import pandas as pd
 from collections import defaultdict
 from sys import path
 path.append("/mnt/ntc_data/wayne/Repositories/CRISPR/")
 from cds_mark import gene_ori_dict
 from utils.read_tsv import tsv2df
+from generate_split_ori import async_in_iterable_structure
 
 
 def merge_intervals(intervals: list) -> list:
@@ -48,18 +51,21 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
             # 记录所有cds区域
             cds_start_li = sub_cds_tran_df[2].to_numpy()
             cds_end_li = sub_cds_tran_df[3].to_numpy()
+            exon_start_li = sub_exon_tran_df[2].to_numpy()
+            exon_end_li = sub_exon_tran_df[3].to_numpy()
             [exon_region_dict[gene]['CDS'].append((int(cds_start_li[i]), int(cds_end_li[i]))) for i in range(len(cds_end_li))]
-            # 根据方向分别寻找UTR起始终止
-            cds_start_idx = 0 if gene_ori == "+" else -1
-            cds_end_idx = -1 - cds_start_idx
-            cds_start = cds_start_li[cds_start_idx]
-            cds_end = cds_end_li[cds_end_idx]
-            exon_start = sub_exon_tran_df[2].to_numpy()[cds_start_idx]
-            exon_end = sub_exon_tran_df[3].to_numpy()[cds_end_idx]
-            utr5_start = int(exon_start)
-            utr5_end = int(cds_start) - 1
-            utr3_start = int(cds_end) + 1
-            utr3_end = int(exon_end)
+            # 根据方向分别寻找UTR起始终止             
+            utr5_start = int(exon_start_li[0])
+            utr5_end = int(cds_start_li[0]) - 1
+            utr3_start = int(cds_end_li[-1]) + 1
+            utr3_end = int(exon_end_li[-1])
+            
+            if gene_ori == "-":
+                utr5_start = int(cds_end_li[0]) + 1
+                utr5_end = int(exon_end_li[0])
+                utr3_start = int(exon_start_li[-1])
+                utr3_end = int(cds_start_li[-1]) - 1
+                
             # 将utr region 存入字典
             exon_region_dict[gene]["UTR5"].append((utr5_start, utr5_end))
             exon_region_dict[gene]["UTR3"].append((utr3_start, utr3_end))          
@@ -69,24 +75,26 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
         interval_exon_region_dict[gene]["CDS"] = merge_intervals(exon_region_dict[gene]["CDS"])
         interval_exon_region_dict[gene]["UTR5"] = merge_intervals(exon_region_dict[gene]["UTR5"])
         interval_exon_region_dict[gene]["UTR3"] = merge_intervals(exon_region_dict[gene]["UTR3"])  
-    # 将区域拆分为 -1->5UTR,0->CDS,1->3UTR (真utr : utr 并集 - cds并集) 落在多个区域时用逗号分隔
-    # for gene in interval_exon_region_dict.keys():
-    #     split_exon_region_dict['-1']
-    print(interval_exon_region_dict)
+    # print(interval_exon_region_dict)
     return interval_exon_region_dict
 
 
 def region_code2str(region_code: int) -> str:
     '''
     1->utr5,2->cds,4->utr3
+    -1->utr5,0->cds,1->utr3
     '''
-    bin_region_code = '{:03b}'.format(region_code)
+    bin_region_code = '{:03b}'.format(region_code)[::-1]
     mark_li = ["-1", "0", "1"]
     res_li = [mark_li[i] for i in range(3) if int(bin_region_code[i])]
     return ",".join(res_li)
 
 
 def region_classify(gene_name: str, cut_pos: int, grna_ori: str, utr_pos_dict: defaultdict) -> str:
+    '''
+    1->utr5,2->cds,4->utr3
+    -1->utr5,0->cds,1->utr3
+    '''
     region_code = 0
     cut_pos_offset = cut_pos + float(grna_ori + "0.5")
     cds_region_li = utr_pos_dict[gene_name]["CDS"]
@@ -113,7 +121,6 @@ def region_classify(gene_name: str, cut_pos: int, grna_ori: str, utr_pos_dict: d
 def search_regions(grna_table: str, region_dict: defaultdict) -> pd.DataFrame:
     gdb_df = tsv2df(grna_table,[])
     gdb_df["Target Region"] = gdb_df.apply(lambda x:region_classify(x[9],x[8],x[5],region_dict),axis=1)
-    print(gdb_df)
     return gdb_df
     
 
@@ -121,21 +128,27 @@ def search_regions(grna_table: str, region_dict: defaultdict) -> pd.DataFrame:
 
 # 根据UTR位置 添加新列 region 标记UTR和CDS
 def utr_mark(nc_no: str) -> None:
+    t1 = time.time()
+    print(f"{nc_no} start:{time.time() - t1}")
     exon_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/EXON.tsv"
     cds_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/CDS.tsv"
     gdb_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/low_mark/{nc_no}.tsv"
     res_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/utr_mark/{nc_no}.tsv"
+    if Path(res_file).exists():
+        print(f"{nc_no} is exist,exit !!!")
+        return
     ori_dict = gene_ori_dict(nc_no)
     utr_pos_dict = utr_region_obtain(exon_file, cds_file, ori_dict)
-    return
     res_df = search_regions(gdb_file, utr_pos_dict)
     res_df.to_csv(res_file,sep="\t",header=False,index=False)
-    
+    print(f"{nc_no} annotation time cost:{time.time() - t1}")
 
 def main() -> None:
-    nc_no = "NC_000024.10"
-    
-    utr_mark(nc_no)
+    nc2chr_file = "nc2chr.tsv"
+    nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
+    nc_li = nc_df[0].tolist()
+    async_in_iterable_structure(utr_mark,nc_li,24)
+    # utr_mark(nc_no)
 
 
 if __name__ == "__main__":
