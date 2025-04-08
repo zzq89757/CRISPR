@@ -1,3 +1,4 @@
+import pandas as pd
 from collections import defaultdict
 from sys import path
 path.append("/mnt/ntc_data/wayne/Repositories/CRISPR/")
