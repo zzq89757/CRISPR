@@ -33,7 +33,6 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
     cds_df = tsv2df(cds_file_path,[])  
     exon_region_dict = defaultdict(lambda:defaultdict(list))
     interval_exon_region_dict = defaultdict(lambda:defaultdict(list))
-    split_exon_region_dict = defaultdict(lambda:defaultdict(list))
     # 按照基因分组
     for gene, sub_exon_df in exon_df.groupby(0,sort=False):
         # 若exon无cds（NR） 跳过
@@ -73,12 +72,49 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
     # 将区域拆分为 -1->5UTR,0->CDS,1->3UTR (真utr : utr 并集 - cds并集) 落在多个区域时用逗号分隔
     # for gene in interval_exon_region_dict.keys():
     #     split_exon_region_dict['-1']
-    
+    print(interval_exon_region_dict)
     return interval_exon_region_dict
 
 
+def region_code2str(region_code: int) -> str:
+    '''
+    1->utr5,2->cds,4->utr3
+    '''
+    bin_region_code = '{:03b}'.format(region_code)
+    mark_li = ["-1", "0", "1"]
+    res_li = [mark_li[i] for i in range(3) if int(bin_region_code[i])]
+    return ",".join(res_li)
+
+
+def region_classify(gene_name: str, cut_pos: int, grna_ori: str, utr_pos_dict: defaultdict) -> str:
+    region_code = 0
+    cut_pos_offset = cut_pos + float(grna_ori + "0.5")
+    cds_region_li = utr_pos_dict[gene_name]["CDS"]
+    utr5_region_li = utr_pos_dict[gene_name]["UTR5"]
+    utr3_region_li = utr_pos_dict[gene_name]["UTR3"]
+    
+    for start, end in cds_region_li:
+        if start < cut_pos_offset < end:
+            region_code += 2
+            break
+    
+    for start, end in utr5_region_li:
+        if start < cut_pos_offset < end:
+            region_code += 1
+            break
+    
+    for start, end in utr3_region_li:
+        if start < cut_pos_offset < end:
+            region_code += 4
+            break
+    return region_code2str(region_code)
+
+
 def search_regions(grna_table: str, region_dict: defaultdict) -> pd.DataFrame:
-    ...
+    gdb_df = tsv2df(grna_table,[])
+    gdb_df["Target Region"] = gdb_df.apply(lambda x:region_classify(x[9],x[8],x[5],region_dict),axis=1)
+    print(gdb_df)
+    return gdb_df
     
 
 
@@ -87,9 +123,13 @@ def search_regions(grna_table: str, region_dict: defaultdict) -> pd.DataFrame:
 def utr_mark(nc_no: str) -> None:
     exon_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/EXON.tsv"
     cds_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/CDS.tsv"
+    gdb_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/low_mark/{nc_no}.tsv"
+    res_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/utr_mark/{nc_no}.tsv"
     ori_dict = gene_ori_dict(nc_no)
     utr_pos_dict = utr_region_obtain(exon_file, cds_file, ori_dict)
-    ...
+    return
+    res_df = search_regions(gdb_file, utr_pos_dict)
+    res_df.to_csv(res_file,sep="\t",header=False,index=False)
     
 
 def main() -> None:
