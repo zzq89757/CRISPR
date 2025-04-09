@@ -15,11 +15,18 @@ def gene_pos_group(start: int, end: int, cut_site: int) -> int:
     return int(left_distance // region_len)
 
 
-def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
+def low_mark_group(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
     # 合并所有子 DataFrame
     sub_dfs = []
     # 读取标记SNP后的原始文件
-    df = tsv2df(raw_db, type_li=[])
+    df = pd.read_csv(
+        raw_db,
+        sep="\t",
+        header=None,
+        dtype={
+            24: str
+            },
+    )
     # 还原首列编号
     df[0] = df[0].apply(lambda x: x.split("_")[1])
     # 按照基因分组排序命名同时标记low score
@@ -29,12 +36,12 @@ def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
         # 添加gRNA名 格式为 hSLC16A1[gRNA3975]
         sub_df = sub_df.reset_index(drop=True)
         sub_df.index += 1
-        sub_df[24] = sub_df[8] + "[gRNA" + sub_df.index.astype(str) + "]"
+        sub_df[25] = sub_df[8] + "[gRNA" + sub_df.index.astype(str) + "]"
         # 根据基因起止添加分组信息
         gene_start, gene_end = gene_pos_dict[gene]
         sub_df['group'] = sub_df[7].apply(lambda x:gene_pos_group(gene_start, gene_end, x))
         # 标记 low score 若候选中包含low score(CFD score ≤ 0.1 && RS2 score ≤ 0.3)
-        sub_df["L"] = ((sub_df[18] <= 0.1) | (sub_df[22] <= 0.3)).astype(int)
+        sub_df["L"] = ((sub_df[24].str.contains("1")) | (sub_df[18] <= 0.1) | (sub_df[22] <= 0.3)).astype(int)
         # 将得分改为百分制并保留两位小数
         sub_df[18] = (sub_df[18] * 100).round(2)
         sub_df[22] = (sub_df[22] * 100).round(2)
@@ -65,14 +72,14 @@ def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
         sub_dfs.append(sub_df)
     new_df = pd.concat(sub_dfs, ignore_index=True)
     # 调整列顺序
-    new_header = [24] + list(range(21)) + [22, 21, "L", 23]
+    new_header = [25] + list(range(21)) + [22, 21, "L", 23, 24]
     return new_df[new_header]
 
 
 def run_mark(nc_no: str) -> None:
     t1 = time.time()
     # print(f"{nc_no} start !!!")
-    raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/snp_mark/{nc_no}.tsv"
+    raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/utr_mark/{nc_no}.tsv"
     filter_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50_group/{nc_no}.tsv"
     if Path(filter_output).exists():
         print(f"{nc_no} exists !!!")
@@ -82,7 +89,7 @@ def run_mark(nc_no: str) -> None:
     gene_info_df = pd.read_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/Gene_list.tsv",sep="\t",header=None)
     for gene, start, end in zip(gene_info_df[0], gene_info_df[1], gene_info_df[2]):
         gene_info_dict[gene] = [start, end]
-    new_df = low_mark(raw_db, gene_info_dict)
+    new_df = low_mark_group(raw_db, gene_info_dict)
     # 保存为tsv
     new_df.to_csv(filter_output, sep="\t", header=None, index=None)
     print(f"{nc_no} finished,time cost:{time.time() - t1},filter_50 num {len(new_df)}!!!")
