@@ -135,6 +135,7 @@ def search_regions(grna_table: str, region_dict: defaultdict) -> pd.DataFrame:
 # 根据UTR位置 添加新列 region 标记UTR和CDS
 def utr_mark(nc_no: str) -> None:
     t1 = time.time()
+    print(f"{nc_no} start !!!")
     exon_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/EXON.tsv"
     cds_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/CDS.tsv"
     gdb_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/snp_mark/{nc_no}.tsv"
