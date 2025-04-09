@@ -86,11 +86,15 @@ Flashfry 建库....
 
 脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/process_snp.py](../process_snp.py)
 
+### 10.标记UTR
+
+脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/utr_mark.py](../utr_mark.py)
+
 ### 10.低分标记
 
 给每个gRNA添加新的名称，名称格式为hSLC16A1[gRNA3975],对CFD score ≤ 0.1的gRNA和RS2 score ≤ 0.3的gRNA进行低分标记
 
-脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/low_mark/low_mark.py](../low_mark/low_mark.py)
+脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/low_mark/low_mark.py](../low_mark.py)
 
 ### 11.筛选20个(single db finished)
 去掉CFD score ≤ 0.1的gRNA和RS2 score ≤ 0.3的gRNA，每个基因选择20条gRNA。
