@@ -101,6 +101,8 @@ Flashfry 建库....
 
 选取方案：gRNA按照CFD score + RS2 score总分按从高到低进行选取；如果总分相同的情况下，优先选择打靶转录本比例高的gRNA；打靶转录本比例相同的情况下，优先选择CFD score和RS2 score差值较小的gRNA
 
+脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/low_mark/low_mark.py](../low_mark.py)
+
 ### 12.generate dual database
 
 1.设置筛选规则
@@ -119,6 +121,6 @@ b) CFD score差值<20 且 RS2 score 差值<20。
 
 2.生成数据库，按distance从小到大排列，如果distance一样，按gRNA Pair ID从小到大排列。
 
-filter_50 脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50_group/filter_50_group.py](../filter_50_group/filter_50_group.py)
+filter_50 脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/low_mark.py](../low_mark.py)
 
 脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/dual_20/dual_unpair.py](../dual_20/dual_unpair.py)

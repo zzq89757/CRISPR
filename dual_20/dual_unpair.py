@@ -128,7 +128,7 @@ def dual(raw_db: str) -> pd.DataFrame:
 
 def run_dual(nc_no: str) -> None:
     t1 = time.time()
-    raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50_group/{nc_no}.tsv"
+    raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50/{nc_no}.tsv"
     output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/dual_cd/{nc_no}.tsv"
     # 跳过已生成结果
     if Path(output).exists():
