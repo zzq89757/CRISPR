@@ -41,6 +41,7 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
         # 若exon无cds（NR） 跳过
         sub_cds_df = cds_df[cds_df[0]==gene]
         if sub_cds_df.empty:continue
+        if gene != "CCNL2":continue
         gene_ori = ori_dict[gene]
         # 根据转录本分组 
         # for (exon_tran, sub_exon_tran_df),(cds_tran, sub_cds_tran_df) in zip(sub_exon_df.groupby(1,sort=False), sub_cds_df.groupby(1,sort=False)):
@@ -75,7 +76,7 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
         interval_exon_region_dict[gene]["CDS"] = merge_intervals(exon_region_dict[gene]["CDS"])
         interval_exon_region_dict[gene]["UTR5"] = merge_intervals(exon_region_dict[gene]["UTR5"])
         interval_exon_region_dict[gene]["UTR3"] = merge_intervals(exon_region_dict[gene]["UTR3"])  
-    # print(interval_exon_region_dict)
+    print(interval_exon_region_dict)
     return interval_exon_region_dict
 
 
@@ -153,8 +154,8 @@ def main() -> None:
     nc2chr_file = "nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    async_in_iterable_structure(utr_mark,nc_li,24)
-    # utr_mark(nc_no)
+    # async_in_iterable_structure(utr_mark,nc_li,24)
+    utr_mark(nc_li[0])
 
 
 if __name__ == "__main__":
