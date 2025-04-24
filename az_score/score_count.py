@@ -25,7 +25,6 @@ for nc_no in nc_li:
     
     # 生成交叉表
     result = pd.crosstab(gdb_df['CFD bin'], gdb_df['Rule bin'])
-
     # 格式化显示
     result.index = result.index.astype(str)
     result.columns = result.columns.astype(str)
@@ -36,6 +35,4 @@ for nc_no in nc_li:
         all_res = result
     else:
         all_res += result
-    print(all_res)
-
-all_res.to_csv("/mnt/ntc_data/wayne/Repositories/CRISPR/az_score/rank.xls",sep="\t")
+all_res.to_csv("/mnt/ntc_data/wayne/Repositories/CRISPR/az_score/rank_1.xls",sep="\t")

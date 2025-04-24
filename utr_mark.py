@@ -41,7 +41,6 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
         # 若exon无cds（NR） 跳过
         sub_cds_df = cds_df[cds_df[0]==gene]
         if sub_cds_df.empty:continue
-        if gene != "CCNL2":continue
         gene_ori = ori_dict[gene]
         # 根据转录本分组 
         # for (exon_tran, sub_exon_tran_df),(cds_tran, sub_cds_tran_df) in zip(sub_exon_df.groupby(1,sort=False), sub_cds_df.groupby(1,sort=False)):
@@ -55,28 +54,101 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
             exon_start_li = sub_exon_tran_df[2].to_numpy()
             exon_end_li = sub_exon_tran_df[3].to_numpy()
             [exon_region_dict[gene]['CDS'].append((int(cds_start_li[i]), int(cds_end_li[i]))) for i in range(len(cds_end_li))]
-            # 根据方向分别寻找UTR起始终止             
+            
+            # 开始分情况计算UTR区域
+            cds_region_count = len(cds_start_li)
+            exon_region_count = len(exon_start_li)
+            
+            # 记录cds 5' 和 3' 位置
+            cds_terminal5 = cds_start_li[0] if gene_ori == "+" else cds_end_li[0]
+            cds_terminal3 = cds_end_li[-1] if gene_ori == "+" else cds_start_li[-1]
+            
+            # 方向为正的情况(默认)
             utr5_start = int(exon_start_li[0])
             utr5_end = int(cds_start_li[0]) - 1
-            utr3_start = int(cds_end_li[-1]) + 1
-            utr3_end = int(exon_end_li[-1])
+            utr3_start = int(cds_end_li[cds_region_count - 1]) + 1 if cds_region_count <= exon_region_count else 0
+            print(exon_tran)
+            # print(exon_end_li)
+            utr3_end = int(exon_end_li[cds_region_count - 1]) if cds_region_count <= exon_region_count else 0
             
-            if gene_ori == "-":
-                utr5_start = int(cds_end_li[0]) + 1
-                utr5_end = int(exon_end_li[0])
-                utr3_start = int(exon_start_li[-1])
-                utr3_end = int(cds_start_li[-1]) - 1
+            # 用 5' 和 3' 位置分别从Exon起始终止开始扫描
+            for i in range(0,exon_region_count):
+                exon_start = exon_start_li[i]
+                exon_end = exon_end_li[i]
+                # 若无UTR5（cds_terminal5 == exon_start OR cds_terminal5 == exon_end） 则不存入区间
+                if cds_terminal5 == exon_start or cds_terminal5 == exon_end:
+                    # print(exon_region_dict[gene]["UTR5"])
+                    # print(exon_tran)
+                    break
+                # 直至寻找到cds 5' 所在的Exon区间 
+                if exon_start < cds_terminal5 < exon_end:
+                    # 计算UTR5起始终止
+                    utr5_start = exon_start if gene_ori == "+" else cds_terminal5 + 1
+                    utr5_end = cds_terminal5 - 1 if gene_ori == "+" else exon_end
+                    exon_region_dict[gene]["UTR5"].append((utr5_start, utr5_end))
+                    break
+                # 将已经遍历过的区间加入extra utr5 region
+                exon_region_dict[gene]["UTR5"].append((exon_start, exon_end))
+            
+            stop_codon_index = 0
+            stop_codon_pos = cds_terminal3 + 3 if gene_ori == "+" else cds_terminal3 - 3
+            # 3'需要考虑终止密码子是否与cds3’落在同一外显子区间
+            for j in range(exon_region_count - 1, -1, -1):
+                exon_start = exon_start_li[j]
+                exon_end = exon_end_li[j]
                 
-            # 将utr region 存入字典
-            exon_region_dict[gene]["UTR5"].append((utr5_start, utr5_end))
-            exon_region_dict[gene]["UTR3"].append((utr3_start, utr3_end))          
-    
+                # 记录cds_terminal3 所在区间 
+                if exon_start <= cds_terminal3 <= exon_end:
+                    # 判断终止密码子落点是否在当前Exon区间
+                    if cds_region_count == exon_region_count:
+                        utr3_start = stop_codon_pos + 1 if gene_ori == "+" else exon_start
+                        utr3_end = exon_end if gene_ori == "+" else stop_codon_pos - 1
+                        # 计算UTR3起始终止
+                        exon_region_dict[gene]["UTR3"].append((utr3_start, utr3_end))
+                        break
+                    else:
+                        if exon_start < stop_codon_pos < exon_end:
+                            utr3_start = stop_codon_pos + 1 if gene_ori == "+" else exon_start
+                            utr3_end = exon_end if gene_ori == "+" else stop_codon_pos - 1
+                            # 计算UTR3起始终止
+                            exon_region_dict[gene]["UTR3"].append((utr3_start, utr3_end))
+                            break
+                        else:
+                            
+                            # print(exon_tran)
+                            # 终止密码子落点不在当前Exon区间
+                            # 计算区间剩余
+                            over_len = stop_codon_pos - exon_end if gene_ori == "+" else exon_start - stop_codon_pos
+                            
+                            # 若无UTR3 （over_len==0）
+                            if over_len == 0:
+                                break
+                            
+                            # 添加跨区碱基
+                            
+                            stop_codon_index = j + 1
+                            # 定位终止密码子区间位置
+                            utr3_start = cds_terminal3 + 1 if gene_ori == "+" else exon_start
+                            if gene_ori == "+":
+                                utr3_start = exon_start_li[stop_codon_index] + over_len - 1
+                                utr3_end = exon_end_li[stop_codon_index]
+                            else:
+                                utr3_start = exon_start_li[stop_codon_index]
+                                utr3_end = exon_end_li[stop_codon_index] - over_len # +1 -1 抵消
+                            exon_region_dict[gene]["UTR3"].remove((exon_start_li[stop_codon_index], exon_end_li[stop_codon_index]))                           
+                            exon_region_dict[gene]["UTR3"].append((utr3_start, utr3_end))
+                            # print(stop_codon_pos)
+                            # print(f"current:({utr3_start},{utr3_end})")
+                            # print(f"all:({exon_region_dict[gene]["UTR3"]}")
+                            break
+                # 将已经遍历过的区间加入extra utr3 region
+                exon_region_dict[gene]["UTR3"].append((exon_start, exon_end))  
     # 分别对UTR5 UTR3 CDS 求区域并集 
     for gene in exon_region_dict.keys():
         interval_exon_region_dict[gene]["CDS"] = merge_intervals(exon_region_dict[gene]["CDS"])
         interval_exon_region_dict[gene]["UTR5"] = merge_intervals(exon_region_dict[gene]["UTR5"])
         interval_exon_region_dict[gene]["UTR3"] = merge_intervals(exon_region_dict[gene]["UTR3"])  
-    print(interval_exon_region_dict)
+    # print(interval_exon_region_dict)
     return interval_exon_region_dict
 
 
@@ -141,9 +213,9 @@ def utr_mark(nc_no: str) -> None:
     cds_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/CDS.tsv"
     gdb_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/snp_mark/{nc_no}.tsv"
     res_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/utr_mark/{nc_no}.tsv"
-    if Path(res_file).exists():
-        print(f"{nc_no} is exist,exit !!!")
-        return
+    # if Path(res_file).exists():
+    #     print(f"{nc_no} is exist,exit !!!")
+    #     return
     ori_dict = gene_ori_dict(nc_no)
     utr_pos_dict = utr_region_obtain(exon_file, cds_file, ori_dict) 
     res_df = search_regions(gdb_file, utr_pos_dict)
@@ -154,8 +226,8 @@ def main() -> None:
     nc2chr_file = "nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    # async_in_iterable_structure(utr_mark,nc_li,24)
-    utr_mark(nc_li[0])
+    async_in_iterable_structure(utr_mark,nc_li,24)
+    # utr_mark(nc_li[0])
 
 
 if __name__ == "__main__":

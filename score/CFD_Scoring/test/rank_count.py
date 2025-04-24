@@ -4,7 +4,7 @@ from collections import Counter
 
 
 def count_rank(nc_no: str) -> None:
-    ot_res_li = Path("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res/").glob(f"{nc_no}*tsv")
+    ot_res_li = Path("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res_ngg/").glob(f"{nc_no}*tsv")
     # Counter
     rank_counter = Counter()
     # read tsv
@@ -29,7 +29,7 @@ def count_rank(nc_no: str) -> None:
     rank_df = rank_df[header]
     rank_df.reset_index()
     rank_df.index=[nc_no]
-    print(rank_df)
+    # print(rank_df)
     return rank_df
     # rank_df.to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/rank/{nc_no}.xls",sep="\t",index=False)
 
@@ -39,13 +39,15 @@ def main() -> None:
     nc_li = nc_df[0].tolist()
     
     res = pd.DataFrame([])
-    for nc in nc_li[:1]:
+    for nc in nc_li:
+        print(f"{nc} satrt !!!")
         sub_res = count_rank(nc)
         res = pd.concat([res,sub_res])
+        print(f"{nc} finished !!!")
     # sort by nc_li
-    # res = res.sort_index()
+    res = res.sort_index()
     
-    # res.to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/rank/all.xls",sep="\t",index=False)
+    res.to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/rank/all.xls",sep="\t",index=False)
 
 if __name__ == "__main__":
     main()
