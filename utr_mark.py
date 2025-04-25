@@ -1,4 +1,3 @@
-from pathlib import Path
 import time
 import pandas as pd
 from collections import defaultdict
@@ -200,9 +199,7 @@ def region_classify(gene_name: str, cut_pos: int, grna_ori: str, utr_pos_dict: d
 def search_regions(grna_table: str, region_dict: defaultdict) -> pd.DataFrame:
     gdb_df = tsv2df(grna_table,[])
     gdb_df["Target Region"] = gdb_df.apply(lambda x:region_classify(x[8],x[7],x[4],region_dict),axis=1)
-    return gdb_df
-    
-
+    return gdb_df   
 
 
 # 根据UTR位置 添加新列 region 标记UTR和CDS
@@ -221,6 +218,7 @@ def utr_mark(nc_no: str) -> None:
     res_df = search_regions(gdb_file, utr_pos_dict)
     res_df.to_csv(res_file,sep="\t",header=False,index=False)
     print(f"{nc_no} time cost:{time.time() - t1}")
+
 
 def main() -> None:
     nc2chr_file = "nc2chr.tsv"
