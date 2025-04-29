@@ -66,7 +66,7 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
             utr5_start = int(exon_start_li[0])
             utr5_end = int(cds_start_li[0]) - 1
             utr3_start = int(cds_end_li[cds_region_count - 1]) + 1 if cds_region_count <= exon_region_count else 0
-            print(exon_tran)
+            # print(exon_tran)
             # print(exon_end_li)
             utr3_end = int(exon_end_li[cds_region_count - 1]) if cds_region_count <= exon_region_count else 0
             
@@ -95,7 +95,12 @@ def utr_region_obtain(exon_file_path: str, cds_file_path: str, ori_dict: dict) -
             for j in range(exon_region_count - 1, -1, -1):
                 exon_start = exon_start_li[j]
                 exon_end = exon_end_li[j]
-                
+                # 若无UTR3 或 终止密码子位置和某区间端点重合
+                if stop_codon_pos == exon_start or cds_terminal5 == exon_end:
+                    # print(exon_region_dict[gene]["UTR3"])
+                    # print(exon_tran)
+                    # exit()
+                    break
                 # 记录cds_terminal3 所在区间 
                 if exon_start <= cds_terminal3 <= exon_end:
                     # 判断终止密码子落点是否在当前Exon区间
@@ -225,7 +230,7 @@ def main() -> None:
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     async_in_iterable_structure(utr_mark,nc_li,24)
-    # utr_mark(nc_li[0])
+    # utr_mark(nc_li[-3])
 
 
 if __name__ == "__main__":

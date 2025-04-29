@@ -13,8 +13,6 @@ def fraction_to_int(value):
     except:
         return None  # 处理错误情况
     
-    
-    
 def run_count(nc_no: str) -> None:
     # 读取gdb
     gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/tran_count/{nc_no}.tsv"
@@ -26,9 +24,14 @@ def run_count(nc_no: str) -> None:
     int_arr = fraction_to_int_vec(gdb_df[16].to_numpy())
     # print(int_arr)
     gdb_df[16] = int_arr
-    gdb_df= gdb_df[(gdb_df[15]=="yes") & (gdb_df[16]==1)]
+    # gdb_df= gdb_df[(gdb_df[15]=="yes") & (gdb_df[16]==1)]
+    # ogdb_df = gdb_df[(gdb_df[16]==1)]
+    # agdb_df = gdb_df[(gdb_df[16]!=1)]
     # print(f"{nc_no}\t{len(gdb_df)}")
-    print(f"{len(gdb_df)}\t{len(set(gdb_df[0].to_list()))}",end="\t")
+    # print(f"{len(gdb_df)}\t{len(set(gdb_df[0].to_list()))}",end="\t")
+    
+    # print(f"{len(gdb_df)}\t{len(set(gdb_df[0].to_list()))}",end="\t")
+    print(f"{sum(int_arr)}\t{len(int_arr) - sum(int_arr)}",end="\t")
 
 def main() -> None:
     # 读取nc2chr_file 生成 NC -> chr 的映射字典

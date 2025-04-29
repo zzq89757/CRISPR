@@ -41,9 +41,9 @@ def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
         sub_df.index += 1
         sub_df[25] = sub_df[8] + "[gRNA" + sub_df.index.astype(str) + "]"
         # 标记 low score 若候选中包含UTR 或 low score(CFD score ≤ 0.1 && RS2 score ≤ 0.3)
+        sub_df["_has_1"] = sub_df[24].astype(str).str.contains("1")
+        sub_df["_low_quality"] = (sub_df[18] <= 0.1) | (sub_df[22] <= 0.3)
         sub_df["L"] = ((sub_df[24].str.contains("1")) | (sub_df[18] <= 0.1) | (sub_df[22] <= 0.3)).astype(int)
-        # 合并所有子 DataFrame
-        mark_dfs.append(sub_df)
         # 根据基因起止添加分组信息
         gene_start, gene_end = gene_pos_dict[gene]
         sub_df['group'] = sub_df[7].apply(lambda x:gene_pos_group(gene_start, gene_end, x))
@@ -59,9 +59,11 @@ def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
         sub_df['diff_score'] = abs(sub_df[18] - sub_df[22])
         # 按照给定的规则进行排序
         sub_df = sub_df.sort_values(
-            by=['sum_score', 'tran_num', 'diff_score'],  # 排序优先级：和 -> tran_num -> 差值
-            ascending=[False, False, True]       # 和降序，tran_num降序，差值升序
-        )
+            by=["_has_1", "_low_quality",'sum_score', 'tran_num', 'diff_score'],
+            ascending=[True, True, False, False, True]  # True 表示 False（不包含/不满足）在前
+        ).drop(columns=['sum_score', 'tran_num', 'diff_score',"_has_1", "_low_quality"]).reset_index(drop=True)
+        # 合并所有子 DataFrame
+        mark_dfs.append(sub_df)
         # 按照区域分组pick 将各个组别前十进行标记 
         picked_id_li += sub_df[sub_df['group']==0][0][:10].to_list()
         picked_id_li += sub_df[sub_df['group']==1][0][:10].to_list()
@@ -72,7 +74,7 @@ def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
         # 若挑选的数目为50 直接筛出 否则回补
         sub_df = pd.concat([sub_df[sub_df['picked']==True],sub_df[sub_df['picked']==False].head(50-len(picked_id_li))])
         # 删除临时列
-        sub_df = sub_df.drop(columns=['sum_score', 'tran_num', 'diff_score', 'group', 'picked'])
+        sub_df = sub_df.drop(columns=['group', 'picked'])
         # 选取前二十个
         sub20_df = sub_df.head(20)
         # 合并所有子 DataFrame
@@ -93,9 +95,9 @@ def run_mark(nc_no: str) -> None:
     mark_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/low_mark/{nc_no}.tsv"
     filter_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50/{nc_no}.tsv"
     filter20_output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_20/{nc_no}.tsv"
-    if Path(filter_output).exists():
-        print(f"{nc_no} exists !!!")
-        return
+    # if Path(filter_output).exists():
+    #     print(f"{nc_no} exists !!!")
+    #     return
     # 读取基因位置信息并存为字典
     gene_info_dict = defaultdict(list)
     gene_info_df = pd.read_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/Gene_list.tsv",sep="\t",header=None)
@@ -114,6 +116,7 @@ def main() -> None:
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     async_in_iterable_structure(run_mark, nc_li, 24)
+    # run_mark(nc_li[-1])
 
 
 if __name__ == "__main__":
