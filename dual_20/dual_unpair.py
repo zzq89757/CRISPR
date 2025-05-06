@@ -55,7 +55,7 @@ def transform_index_pair_li(idx_pair_li: list, gene_df: pd.DataFrame) -> pd.Data
         # 是否适用于AD10（FR则适用于AD10）
         is_cd = "n" if grna1[5] == grna2[5] else "y"
         # 分别提取每条grna的name(0),rawid(1)、upstream(21)、seq(2)、pam(3)、downstream(23)、orientation_chr(5)、cutsite_chr(8)、loc_gene(13)、tran cov(17)、orientation_gene(12)、cfd score(19)、rs2 score(22)、snp(25)
-        info_idx = [0, 1, 21, 2, 3, 23, 5, 8, 13, 17, 12, 19, 22, 25]
+        info_idx = [0, 1, 21, 2, 3, 23, 5, 8, 13, 17, 12, 19, 22, 25, 26]
         # 拼接两行 添加pair_ID distance gene_ID chr gene_name
         merge_ser = pd.concat([pd.Series([pair_id, distance, gene_id, chr_no, gene_name, is_cd]), grna1[info_idx], grna2[info_idx]], ignore_index=True)
         # 转换为df并转置
