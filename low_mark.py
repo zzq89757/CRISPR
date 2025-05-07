@@ -41,9 +41,8 @@ def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
         sub_df.index += 1
         sub_df[25] = sub_df[8] + "[gRNA" + sub_df.index.astype(str) + "]"
         # 标记 low score 若候选中包含UTR 或 low score(CFD score ≤ 0.1 && RS2 score ≤ 0.3)
-        sub_df["_has_1"] = sub_df[24].astype(str).str.contains("1")
-        sub_df["_low_quality"] = (sub_df[18] <= 0.1) | (sub_df[22] <= 0.3)
-        sub_df["L"] = ((sub_df[24].str.contains("1")) | (sub_df[18] <= 0.1) | (sub_df[22] <= 0.3)).astype(int)
+        sub_df["_has_0"] = sub_df[24].astype(str).str.contains("0")
+        sub_df["_low_quality"] = ((sub_df[18] <= 0.1) | (sub_df[22] <= 0.3)).astype(int)
         # 根据基因起止添加分组信息
         gene_start, gene_end = gene_pos_dict[gene]
         sub_df['group'] = sub_df[7].apply(lambda x:gene_pos_group(gene_start, gene_end, x))
@@ -59,9 +58,9 @@ def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
         sub_df['diff_score'] = abs(sub_df[18] - sub_df[22])
         # 按照给定的规则进行排序
         sub_df = sub_df.sort_values(
-            by=["_has_1", "_low_quality",'sum_score', 'tran_num', 'diff_score'],
-            ascending=[True, True, False, False, True]  # True 表示 False（不包含/不满足）在前
-        ).drop(columns=['sum_score', 'tran_num', 'diff_score',"_has_1", "_low_quality"]).reset_index(drop=True)
+            by=["_has_0", "_low_quality",'sum_score', 'tran_num', 'diff_score'],
+            ascending=[False, True, False, False, True]  # True 表示 False（不包含/不满足）在前
+        ).drop(columns=['sum_score', 'tran_num', 'diff_score',"_has_0"]).reset_index(drop=True)
         # 合并所有子 DataFrame
         mark_dfs.append(sub_df)
         # 按照区域分组pick 将各个组别前十进行标记 
@@ -84,7 +83,7 @@ def low_mark(raw_db: str, gene_pos_dict: defaultdict) -> pd.DataFrame:
     new20_df = pd.concat(sub20_dfs, ignore_index=True)
     mark_df = pd.concat(mark_dfs, ignore_index=True)
     # 调整列顺序
-    new_header = [25] + list(range(21)) + [22, 21, "L", 23, 24]
+    new_header = [25] + list(range(21)) + [22, 21, "_low_quality", 23, 24]
     return mark_df[new_header], new_df[new_header], new20_df[new_header]
 
 
