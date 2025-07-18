@@ -9,7 +9,7 @@ def async_in_iterable_structure(fun, iterable_structure, cpus):
         lock = l
 
     lock = RLock()
-    p = Pool(int(cpus), initializer=init, initargs=(lock,))
+    # p = Pool(int(cpus), initializer=init, initargs=(lock,))
     p = Pool(int(cpus), initializer=init, initargs=(lock,))
     # apply async in iterable structure
     for i in iterable_structure:

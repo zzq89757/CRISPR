@@ -18,7 +18,7 @@ def scaffold_fill(raw_db: str) -> pd.DataFrame:
 
 
 def run_fill(nc_no: str) -> None:
-    raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/low_mark/{nc_no}.tsv"
+    raw_db = f"/mnt/ntc_data/wayne/Repositories/CRISPR/filter_50/{nc_no}.tsv"
     output = f"/mnt/ntc_data/wayne/Repositories/CRISPR/scaffold_fill/{nc_no}.tsv"
     if Path(output).exists():
         print(f"{nc_no} exists !!!")

@@ -53,7 +53,7 @@ def filtered_gRNA_list(ot_res_df: pd.DataFrame) -> list:
 
 def run_filter(nc_no) -> None:
     # glob file
-    ot_res_li = Path("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res_ngg/").glob(f"{nc_no}*tsv")
+    ot_res_li = Path("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res/").glob(f"{nc_no}*tsv")
     for ot_res in ot_res_li:
         ot_res_df = ot_res2df(ot_res)
         filtered_gRNA_list(ot_res_df).to_csv(str(ot_res).replace("all_res","all_res_filter"),sep="\t",index=False)
@@ -68,7 +68,7 @@ def main() -> None:
     async_in_iterable_structure(run_filter,nc_li,24)
     print("ot search result filtered,scoring...")
     # run_score_cmd("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res_filter_ngg/NC_000024.10_1.tsv")
-    file_li = Path("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res_filter_ngg/").glob("*tsv")
+    file_li = Path("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res_filter/").glob("*tsv")
     async_in_iterable_structure(run_score_cmd,file_li,24)
     
 
