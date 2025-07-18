@@ -8,7 +8,7 @@
 
 结果路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/tss_tran](./tss_tran)
 
-#### 0.2 寻找TSS上游100bp 并获取交集区域
+#### 0.2 寻找TSS上游1kb 并获取交集区域 记录落在交集区能影响的转录本
 脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/insertion_region_obtain.py](./insertion_region_obtain.py)
 
 结果路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/tss_regions](./tss_regions)
