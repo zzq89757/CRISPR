@@ -35,14 +35,14 @@ def get_gene_transcript_starts_from_df(nc_no: str, gene_ori_dict: dict) -> defau
     return gene_tss_dict
 
 
-def export_tss_dict(nc_no: str, tss_dict: defaultdict) -> None:
+def export_tss_dict(nc_no: str, tss_dict: defaultdict, gene_ori_dict: defaultdict) -> None:
     # 构建DataFrame用的列表
     records = []
 
     for gene, tuples in tss_dict.items():
         for position, transcript_list in tuples:
             transcript_str = ",".join(transcript_list)
-            records.append([gene, position, transcript_str])
+            records.append([gene, gene_ori_dict[gene], position, transcript_str])
 
     # 转为DataFrame
     df = pd.DataFrame(records)
@@ -60,7 +60,7 @@ def extract_tss(nc_no: str) -> defaultdict:
     # 获取基因TSS位点
     tss_dict = get_gene_transcript_starts_from_df(nc_no, ori_dict)
     # 构造为df并导出
-    export_tss_dict(nc_no, tss_dict)
+    export_tss_dict(nc_no, tss_dict, ori_dict)
     # 取每个TSS的上游1kb并取并集
     # print(tss_dict)
     
