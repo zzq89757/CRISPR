@@ -28,7 +28,7 @@ vcf来源 [https://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606/VCF/](https://f
 ### 2.保留落在基因上的gRNA
 将切点落在基因内（即「16bp+Gene+16bp」范围内）的gRNA序列取出
 
-脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/filter_ori_by_gene_vector_offset.py](../filter_ori_by_gene_vector_offset.py)
+脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/process_border_withid.py](../process_border_withid.py)
 
 ### 3.保留落在exon上的gRNA
 删除其中gRNA_cut(in_gene) 位置没有落在基因的任何一个Exon上的gRNA序列

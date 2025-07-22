@@ -325,7 +325,7 @@ def main() -> None:
     type_dict = dict(enumerate(type_li))
     # 读取基因位置信息文件
     gene_pos_df = pd.read_csv(
-        f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/{chr2nc_dict[chr]}/Gene_list.tsv",
+        f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{chr2nc_dict[chr]}/Gene_list.tsv",
         sep="\t",
         header=None,
         # low_memory=False,

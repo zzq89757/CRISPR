@@ -13,3 +13,8 @@
 
 结果路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/tss_regions](./tss_regions)
 
+
+### 0.3 去除PAM是NAG的gRNA
+脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/remove_nag_async.py](./remove_nag_async.py)
+
+结果路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/nag_remove](./nag_remove)
