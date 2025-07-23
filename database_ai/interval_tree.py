@@ -73,7 +73,7 @@ def run(nc_no: str) -> None:
         index=grna_df.index  # 保证索引一致
     )
     grna_df["re_loc"] = grna_df["re_loc"].apply(
-        lambda x: x.replace("--", "-(") + ")" if "--" in x else x
+        lambda x: x.replace("--", "-(-") + ")" if "--" in x else x
     )
     # 重设表头
     new_header = list(range(7)) + ["gene", "gene_id", "gene_type", "re_dir", "re_loc", "trans"]
