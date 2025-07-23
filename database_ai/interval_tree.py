@@ -78,6 +78,11 @@ def run(nc_no: str) -> None:
     # 重设表头
     new_header = list(range(7)) + ["gene", "gene_id", "gene_type", "re_dir", "re_loc", "trans"]
     grna_df = grna_df[new_header]
+    # 合并相同id 相同基因的行
+    grna_df = grna_df.groupby(list(range(7)) + ["gene", "gene_id", "gene_type", "re_dir", "re_loc"], as_index=False).agg({
+    "trans": lambda x: ",".join(sorted(set(x))),
+    # 其他列也按需添加，假设这些列在每组中是一致的
+})
     # === 4. 保存或显示结果 ===
     # print(grna_df)
 
@@ -91,8 +96,8 @@ def main() -> None:
     nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    async_in_iterable_structure(run,nc_li,24)
-
+    # async_in_iterable_structure(run,nc_li,24)
+    run(nc_li[-1])
 
 if __name__ == "__main__":
     main()
