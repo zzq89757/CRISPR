@@ -49,7 +49,8 @@ def export_tss_dict(nc_no: str, tss_dict: defaultdict, gene_info_dict: defaultdi
 
     # 转为DataFrame
     df = pd.DataFrame(records)
-
+    # 按照tss排序
+    df.sort_values(1,inplace=True)
     # 导出TSV
     df.to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/tss_tran/{nc_no}.tsv", index=False, sep="\t", header=None)
 
