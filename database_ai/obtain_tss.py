@@ -10,12 +10,13 @@ from generate_split_ori import async_in_iterable_structure
 
 def obtain_gene_info_dict(nc_no: str) -> dict:
     gene_df: pd.DataFrame = pd.read_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/Gene_list.tsv",sep="\t",header=None)
-    gene_df["5_end"] = np.where(gene_df.iloc[:, 3] == '+', gene_df.iloc[:, 1], gene_df.iloc[:, 2])
+    # gene_df["5_end"] = np.where(gene_df.iloc[:, 3] == '+', gene_df.iloc[:, 1], gene_df.iloc[:, 2])
+    # gene_df["3_end"] = np.where(gene_df.iloc[:, 3] == '+', gene_df.iloc[:, 2], gene_df.iloc[:, 1])
     gene_dict = defaultdict(list)
 
     for _, row in gene_df.iterrows():
         symbol = row[0]
-        gene_dict[symbol] = [row[3], row["5_end"], row[4], row[5]]
+        gene_dict[symbol] = [row[3], row[1], row[2], row[4], row[5]]
     return gene_dict
 
 
@@ -44,8 +45,8 @@ def export_tss_dict(nc_no: str, tss_dict: defaultdict, gene_info_dict: defaultdi
     for gene, tuples in tss_dict.items():
         for position, transcript_list in tuples:
             transcript_str = ",".join(transcript_list)
-            gene_ori, gene_5end_pos, gene_id, gene_type = gene_info_dict[gene]
-            records.append([transcript_str, position, gene, gene_ori, gene_5end_pos, gene_id, gene_type])
+            gene_ori, gene_5end_pos, gene_3end_pos, gene_id, gene_type = gene_info_dict[gene]
+            records.append([transcript_str, position, gene, gene_ori, gene_5end_pos, gene_3end_pos, gene_id, gene_type])
 
     # 转为DataFrame
     df = pd.DataFrame(records)
@@ -58,7 +59,7 @@ def export_tss_dict(nc_no: str, tss_dict: defaultdict, gene_info_dict: defaultdi
 def extract_tss(nc_no: str) -> defaultdict:
     # 获取基因方向和起点的字典
     gene_info_dict = obtain_gene_info_dict(nc_no)
-    print(gene_info_dict)
+    # print(gene_info_dict)
     # 获取基因TSS位点
     tss_dict = get_gene_transcript_starts_from_df(nc_no, gene_info_dict)
     # 构造为df并导出
