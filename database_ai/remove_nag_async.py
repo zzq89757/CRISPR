@@ -11,7 +11,7 @@ from process_border_withid import async_in_iterable_structure
 
 def run(nc_no: str) -> None:
     t1 = time.time()
-    nc_no = "NC_000024.10"
+    # nc_no = "NC_000024.10"
     
 
     nc_table = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
