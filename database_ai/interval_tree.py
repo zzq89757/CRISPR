@@ -20,8 +20,8 @@ def run(nc_no: str) -> None:
         strand = row["gene_ori"]
         gene_start = row["gene_start"]
         gene_end = row["gene_end"]
-        start = row["tss"] - 1000
-        end = row["tss"] - 1
+        start = row["tss"] - 1000 - 11
+        end = row["tss"] - 1 + 11
         hit_str = f"{tran_str}\t{gene_start}\t{gene_end}\t{gene}\t{gene_id}\t{strand}\t{gene_type}"
         tree.add(Interval(start, end, hit_str))  # 注意end+1
 
@@ -92,7 +92,7 @@ def main() -> None:
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     async_in_iterable_structure(run,nc_li,24)
-    
+
 
 if __name__ == "__main__":
     main()
