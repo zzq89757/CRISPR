@@ -32,11 +32,14 @@ def run_score_cmd(file_name) -> None:
 def filtered_gRNA_list(ot_res_df: pd.DataFrame) -> list:
     # 过滤PAM为NAG的item
     ot_res_df = ot_res_df[ot_res_df["target"].str.endswith("GG")]
+    print(f"NGG filter,current num {len(ot_res_df)}")
     # 过滤RVS
     ot_res_df = ot_res_df[ot_res_df["orientation"]=="FWD"]
+    print(f"RVS filter,current num {len(ot_res_df)}")
 
     # 过滤OVERFLOW
     ot_res_df = ot_res_df[ot_res_df["overflow"]=="OK"]
+    print(f"OV filter,current num {len(ot_res_df)}")
 
     # 过滤 N_0 (N>1)
     ot_res_df["N_0"] = ot_res_df["offTargets"].str.findall(r'(\d+)_0').apply(lambda x: sum(map(int, x)))  # 转换为整数并求和
@@ -45,6 +48,7 @@ def filtered_gRNA_list(ot_res_df: pd.DataFrame) -> list:
 
     # N >= 2 pass
     ot_res_df = ot_res_df[ot_res_df["N_0"]==1]
+    print(f"N0 filter,current num {len(ot_res_df)}")
     del(ot_res_df["N_0"])
     # print(ot_res_df)
     # ot_res_df.to_csv("ttt.tsv",sep="\t",index=False)
@@ -53,7 +57,7 @@ def filtered_gRNA_list(ot_res_df: pd.DataFrame) -> list:
 
 def run_filter(nc_no) -> None:
     # glob file
-    ot_res_li = Path("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res/").glob(f"{nc_no}*tsv")
+    ot_res_li = Path("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res_ngg/").glob(f"{nc_no}*tsv")
     for ot_res in ot_res_li:
         ot_res_df = ot_res2df(ot_res)
         filtered_gRNA_list(ot_res_df).to_csv(str(ot_res).replace("all_res","all_res_filter"),sep="\t",index=False)
@@ -64,12 +68,12 @@ def main() -> None:
     nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    # run_filter(nc_li[-1])
-    async_in_iterable_structure(run_filter,nc_li,24)
-    print("ot search result filtered,scoring...")
+    run_filter(nc_li[-1])
+    # async_in_iterable_structure(run_filter,nc_li,24)
+    # print("ot search result filtered,scoring...")
     # run_score_cmd("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res_filter_ngg/NC_000024.10_1.tsv")
-    file_li = Path("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res_filter/").glob("*tsv")
-    async_in_iterable_structure(run_score_cmd,file_li,24)
+    # file_li = Path("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res_filter/").glob("*tsv")
+    # async_in_iterable_structure(run_score_cmd,file_li,24)
     
 
 

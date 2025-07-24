@@ -20,10 +20,10 @@ def run(nc_no: str) -> None:
         strand = row["gene_ori"]
         gene_start = row["gene_start"]
         gene_end = row["gene_end"]
-        start = row["tss"] - 1000 - 11
-        end = row["tss"] - 1 + 11
+        left = row["tss"] - 1000 - 11 if strand == "+" else row["tss"] + 1 - 11
+        right = row["tss"] - 1 + 11 if strand == "+" else row["tss"] + 1000 + 11
         hit_str = f"{tran_str}\t{gene_start}\t{gene_end}\t{gene}\t{gene_id}\t{strand}\t{gene_type}"
-        tree.add(Interval(start, end, hit_str))  # 注意end+1
+        tree.add(Interval(left, right, hit_str))  # 注意end+1
 
 
     # === 2. 读取gRNA文件 ===
@@ -67,7 +67,7 @@ def run(nc_no: str) -> None:
 
     grna_df["re_loc"] = pd.DataFrame(
         grna_df.apply(
-            lambda row: relative_pos_calc(row["grna_left"], row["grna_right"], row[7], row[4], row["gene_start"], row["gene_end"], row["gene_strand"])[0],
+            lambda row: relative_pos_calc(row[5], row[6], row[7], row[4], row["gene_start"], row["gene_end"], row["gene_strand"])[0],
             axis=1
         ).tolist(),  # 重要：先转成列表，再传给DataFrame
         index=grna_df.index  # 保证索引一致
@@ -96,8 +96,8 @@ def main() -> None:
     nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    # async_in_iterable_structure(run,nc_li,24)
-    run(nc_li[-1])
+    async_in_iterable_structure(run,nc_li,24)
+    # run(nc_li[-1])
 
 if __name__ == "__main__":
     main()

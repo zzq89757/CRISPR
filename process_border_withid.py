@@ -114,6 +114,7 @@ def relative_pos_calc(gr_start: int, gr_end: int, gr_cut: int, gr_ori: str, gene
     # 根据gr位置判断gRNA是否超出基因范围
     gr_left = min(gr_start, gr_end)
     gr_right = max(gr_start, gr_end)
+    # gRNA在基因里
     if  gr_left >= gene_terminal_left and gr_right <= gene_terminal_right:
         relative_left = abs(gr_left - real_gene_start) + 1
         relative_right = abs(gr_right - real_gene_start) + 1
@@ -123,7 +124,7 @@ def relative_pos_calc(gr_start: int, gr_end: int, gr_cut: int, gr_ori: str, gene
     if gene_ori == "+":
         if gr_left < gene_terminal_left:
             relative_left = gr_left - gene_terminal_left
-            relative_right = gr_right - gene_terminal_left + 1
+            relative_right = gr_right - gene_terminal_left + 1 if gr_right >= gene_terminal_left else gr_right - gene_terminal_left
             loc_str = f"({relative_left})-{relative_right}"
             return [loc_str, relative_cut]
         if gr_right > gene_terminal_right:
@@ -138,7 +139,7 @@ def relative_pos_calc(gr_start: int, gr_end: int, gr_cut: int, gr_ori: str, gene
             loc_str = f"{relative_right}-{relative_left}(+{gene_terminal_left - gr_left})"
             return [loc_str, relative_cut]
         if gr_right > gene_terminal_right:
-            relative_left = gene_terminal_right - gr_left + 1
+            relative_left = gene_terminal_right - gr_left + 1 if gr_left <= gene_terminal_right else gene_terminal_right - gr_left
             relative_right = gene_terminal_right - gr_right
             loc_str = f"({relative_right})-{relative_left}"
             return [loc_str, relative_cut]
