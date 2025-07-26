@@ -1,12 +1,12 @@
 from pathlib import Path
 import time
 import pandas as pd
-from utils.read_tsv import tsv2df
 import numpy as np
 from sys import path
 
 path.append("/mnt/ntc_data/wayne/Repositories/CRISPR/")
 
+from utils.read_tsv import tsv2df
 from generate_split_ori import async_in_iterable_structure
 # 用snp文件遍历gdb起止 似乎不可行 gdb交集区太多
 
@@ -95,14 +95,14 @@ def snp_detective(gdb_df: pd.DataFrame, snp_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def run_snp(nc_no: str) -> None:
-    if Path(f"/mnt/ntc_data/wayne/Repositories/CRISPR/snp_mark/{nc_no}.tsv").exists():
+    if Path(f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/snp_mark/{nc_no}.tsv").exists():
         print(f"<{nc_no}> result exists,exit!!!")
         return
     t1 = time.time()
     # read gdb
-    gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/az_score/{nc_no}.tsv"
+    gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/rs2_score/{nc_no}.tsv"
     header_type_li = ["string", "string", "category", "category", "category", "int32", "int32", "int32", "string", "int32", "category", "category", "string", "int32", "string", "category", "string", "category"]
-    gdb_df = tsv2df(gdb_path, header_type_li)
+    gdb_df = tsv2df(gdb_path, [])
     print(f"load gdb<{nc_no}> time cost:{time.time() - t1}")
     t1 = time.time()
     # read snp file
@@ -116,7 +116,7 @@ def run_snp(nc_no: str) -> None:
     # 调整表头顺序
     # headers = list(range(17)) + ["snp",18,19,] 
     # 保存为tsv文件
-    output_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/snp_mark/{nc_no}.tsv"
+    output_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/snp_mark/{nc_no}.tsv"
     gdb_df.to_csv(output_path,sep="\t",header=None,index=None)
     print(f"process {nc_no} time cost:{time.time() - t1}")
     print(f"output saved in {output_path}")
@@ -125,7 +125,7 @@ def run_snp(nc_no: str) -> None:
 
 
 def main() -> None:
-    nc2chr_file = "nc2chr.tsv"
+    nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     async_in_iterable_structure(run_snp,nc_li,24)
