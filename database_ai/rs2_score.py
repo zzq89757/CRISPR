@@ -64,29 +64,29 @@ def rs2_score_calc(nc_no: str, gdb_df: pd.DataFrame) -> None:
 
 def run(nc_no: str) -> None:
     # if result already exists,skiped
-    if Path(f"/mnt/ntc_data/wayne/Repositories/CRISPR/az_score/{nc_no}.tsv").exists():
-        print(f"/mnt/ntc_data/wayne/Repositories/CRISPR/az_score/{nc_no}.tsv is exists,skiped !!!")
+    if Path(f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/rs2_score/{nc_no}.tsv").exists():
+        print(f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/rs2_score/{nc_no}.tsv is exists,skiped !!!")
         return None
     
-    flank_res_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/flank_fill/{nc_no}.tsv"
+    flank_res_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/flank_fill/{nc_no}.tsv"
     gdb_df = pd.DataFrame([])
     # if no flanking
     if not Path(flank_res_path).exists():
         # gdb 2 df 
-        gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/cfd_filter/{nc_no}.tsv"
+        gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/cfd_score/{nc_no}.tsv"
         type_li =  ["string", "string", "category", "category", "category", "int32", "int32", "int32", "string", "int32", "category", "category", "string", "int32", "string", "category", "string", "category", "float", "int32"]
-        gdb_df = tsv2df(gdb_path,type_li)
+        gdb_df = tsv2df(gdb_path,[])
         print(f"{nc_no} gdb load finished...")
         # flanking up down stream
         ref_seq = reference_obtain(nc_no)
         gdb_df[['up_stream', 'down_stream']] = gdb_df.apply(lambda x:pd.Series(flanking_seq(ref_seq,x[5],x[6])),axis=1)
-        output_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/flank_fill/{nc_no}.tsv"
+        output_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/flank_fill/{nc_no}.tsv"
         gdb_df.to_csv(output_path,sep="\t",header=None,index=None)
         print(f"{nc_no} flank fill finished...")
     
     else:
         # if flank have exists
-        gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/flank_fill/{nc_no}.tsv"
+        gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/flank_fill/{nc_no}.tsv"
         type_li =  ["string", "string", "category", "category", "category", "int32", "int32", "int32", "string", "int32", "category", "category", "string", "int32", "string", "category", "string", "category", "float", "int32", "string", "string"]
         gdb_df = tsv2df(gdb_path,type_li)
         # new_col_dict =
@@ -94,24 +94,24 @@ def run(nc_no: str) -> None:
             20:"up_stream",
             21:"down_stream"
         },inplace=True)
-        print(f"/mnt/ntc_data/wayne/Repositories/CRISPR/flank_fill/{nc_no} load ...")
+        print(f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/flank_fill/{nc_no} load ...")
 
     # calc rs2 score
     rs2_score_calc(nc_no, gdb_df)
     print(f"{nc_no} rs2 score finished...")
     
     # save as tsv
-    output_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/az_score/{nc_no}.tsv"
+    output_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/rs2_score/{nc_no}.tsv"
     gdb_df.to_csv(output_path,sep="\t",header=None,index=None)
-    print(f"{nc_no} done,saved in /mnt/ntc_data/wayne/Repositories/CRISPR/az_score/{nc_no}.tsv")
+    print(f"{nc_no} done,saved in /mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/rs2_score/{nc_no}.tsv")
 
 
 def main() -> None:
     nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    # async_in_iterable_structure(run,nc_li,24)
-    run("NC_000017.11")
+    async_in_iterable_structure(run,nc_li,24)
+    # run(nc_li[-1])
     
 if __name__ == "__main__":
     main()
