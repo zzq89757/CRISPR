@@ -33,4 +33,11 @@
 结果路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/cfd_score/flashfry_filter_out/](./cfd_score/flashfry_filter_out)
 
 
-### 2.rs2 Scoring
+### 2.flanking and rs2 Scoring
+脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/rs2_score.py](./rs2_score.py)
+
+结果路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/flank_fill/](./flank_fill)
+
+结果路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/rs2_score/](./rs2_score)
+
+
