@@ -80,6 +80,8 @@ def run(nc_no: str) -> None:
         # flanking up down stream
         ref_seq = reference_obtain(nc_no)
         gdb_df[['up_stream', 'down_stream']] = gdb_df.apply(lambda x:pd.Series(flanking_seq(ref_seq,x[5],x[6])),axis=1)
+        # filter flanking contains N
+        gdb_df = gdb_df[~(gdb_df['up_stream'].str.contains('N') | gdb_df['down_stream'].str.contains('N'))]
         output_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/flank_fill/{nc_no}.tsv"
         gdb_df.to_csv(output_path,sep="\t",header=None,index=None)
         print(f"{nc_no} flank fill finished...")
@@ -88,14 +90,15 @@ def run(nc_no: str) -> None:
         # if flank have exists
         gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/flank_fill/{nc_no}.tsv"
         type_li =  ["string", "string", "category", "category", "category", "int32", "int32", "int32", "string", "int32", "category", "category", "string", "int32", "string", "category", "string", "category", "float", "int32", "string", "string"]
-        gdb_df = tsv2df(gdb_path,type_li)
+        gdb_df = tsv2df(gdb_path,[])
+        print(gdb_df.head())
         # new_col_dict =
         gdb_df.rename(columns={
-            20:"up_stream",
-            21:"down_stream"
+            15:"up_stream",
+            16:"down_stream"
         },inplace=True)
         print(f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/flank_fill/{nc_no} load ...")
-
+    
     # calc rs2 score
     rs2_score_calc(nc_no, gdb_df)
     print(f"{nc_no} rs2 score finished...")
@@ -111,7 +114,7 @@ def main() -> None:
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     async_in_iterable_structure(run,nc_li,24)
-    # run(nc_li[-1])
+    # run(nc_li[0])
     
 if __name__ == "__main__":
     main()
