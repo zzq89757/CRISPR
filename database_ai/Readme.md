@@ -41,3 +41,7 @@
 结果路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/rs2_score/](./rs2_score)
 
 
+### 3.snp mark
+脚本路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/process_snp.py](./process_snp.py)
+
+结果路径：[/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/snp_mark/](./snp_mark)
