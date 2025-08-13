@@ -1,66 +1,66 @@
-import os
-from pathlib import Path
-import time
-import pandas as pd
 from os import system
+import pandas as pd
+from pathlib import Path
+from collections import Counter
 from sys import path
 path.append("/mnt/ntc_data/wayne/Repositories/CRISPR/")
 from utils.read_tsv import tsv2df
 from generate_split_ori import async_in_iterable_structure
 
 
-def gdb2fa(gdb_df: pd.DataFrame, nc_no: str) -> None:
-    seq = gdb_df[1].to_numpy() + gdb_df[2].to_numpy()
-    # 切割序列文件 88w一切
-    seq_li = [">"] * len(gdb_df[0]) + gdb_df[8].to_numpy() + ["_"] * len(gdb_df[0]) + gdb_df[0].astype(str).to_numpy() + ["\n"] * len(gdb_df[0]) + seq
-    chunk_size = 880000  # 每块的大小（88w）
+def ot_res2df(ot_res: str) -> pd.DataFrame:
+    type_li = ["string", "category", "category", "string", "category", "category", "category", "int32","string"]
+    type_dict = dict(enumerate(type_li))
 
-    # 切割列表
-    chunks = [seq_li[i:i + chunk_size] for i in range(0, len(seq_li), chunk_size)]
-    
-    for idx, chunk in enumerate(chunks):
-        with open(f"/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/fa/{nc_no}_{idx + 1}.fa", "w") as f:
-            f.write("\n".join(chunk))
-            f.write("\n")
+    df = pd.read_csv(
+        ot_res,
+        sep="\t",
+        header=0,
+        dtype=type_dict,
+    )
+    return df
 
 
-def flashfry_cmd(gdb_fa_path: str, ot_path: str, output_path: str) -> None:
-    # print(f"java -Xmx8g -jar /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/FlashFry-assembly-1.15.jar  discover  --database {ot_path}  --fasta {gdb_fa_path}  --output {output_path} --maxMismatch 3 --maximumOffTargets 100")
-    # system(f"java -Xmx8g -jar /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/FlashFry-assembly-1.15.jar  discover  --database {ot_path}  --fasta {gdb_fa_path}  --output {output_path} --maxMismatch 3 --maximumOffTargets 100 --forceLinear")
-    system(f"java -Xmx8g -jar /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/FlashFry-assembly-1.15.jar  discover  --database {ot_path}  --fasta {gdb_fa_path}  --output {output_path} --maxMismatch 3 --maximumOffTargets 100 --forceLinear")
-    
+def run_score_cmd(file_name) -> None:
+    mem = 8
+    print(f"java -Xmx{mem}g -jar FlashFry-assembly-1.15.jar  score  --database NCA_cas9_db  --input {str(file_name)}  --output {str(file_name).replace("all_res_filter","all_score")}  --scoringMetrics doench2016cfd")
+    system(f"java -Xmx{mem}g -jar /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/FlashFry-assembly-1.15.jar  score  --database /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/db_NGG/NCA_cas9_db  --input {str(file_name)}  --output {str(file_name).replace("all_res_filter","all_score")}  --scoringMetrics doench2016cfd")
 
-def run_flashfry_cmd(nc_no:str):
-    ot_path = "/mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/NCA_cas9_db"
-    
-    output_fa_li = list(Path(f"/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/fa/").glob(f"{nc_no}*fa"))
-    
-    res_path = "/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res/"
-    res_out_path_li = [f"{res_path}/{fa.name.replace("fa","tsv")}" for fa in output_fa_li]
-    
-    for output_fa,res_out_path in zip(output_fa_li, res_out_path_li): 
-        if Path(res_out_path).exists():
-            print(f"file <{res_out_path}> already exists, skip")
-            continue   
-        flashfry_cmd(output_fa,ot_path,res_out_path)
-    
-def run_map(nc_no: str) -> None:
-    t1 = time.time()
-    
-    gdb_path = f"/mnt/ntc_data/wayne/Repositories/CRISPR/pam_filter/{nc_no}.tsv"
-    header_type_li = ["int32", "string", "category", "category", "category", "int32", "int32", "int32", "string", "int32", "category", "category", "string", "int32", "string", "category", "string", "category"]
-    gdb_df = tsv2df(gdb_path, header_type_li)
-    print(f"load gdb<{nc_no}> time cost:{time.time() - t1}")
-    t1 = time.time()
-    
-    gdb2fa(gdb_df,nc_no)
-    print(f"gdb2fa <{nc_no}> time cost:{time.time() - t1}")
-    t1 = time.time()  
-    run_flashfry_cmd(nc_no)
-    
 
-    print(f"run flashfry <{nc_no}> time cost:{time.time() - t1}")
-    
+# 读取扫ot库的结果 获取保留的gRNA list 用于算分等操作
+
+def filtered_gRNA_list(ot_res_df: pd.DataFrame) -> list:
+    # 过滤PAM为NAG的item
+    ot_res_df = ot_res_df[ot_res_df["target"].str.endswith("GG")]
+    print(f"NGG filter,current num {len(ot_res_df)}")
+    # 过滤RVS
+    ot_res_df = ot_res_df[ot_res_df["orientation"]=="FWD"]
+    print(f"RVS filter,current num {len(ot_res_df)}")
+
+    # 过滤OVERFLOW
+    ot_res_df = ot_res_df[ot_res_df["overflow"]=="OK"]
+    print(f"OV filter,current num {len(ot_res_df)}")
+
+    # 过滤 N_0 (N>1)
+    ot_res_df["N_0"] = ot_res_df["offTargets"].str.findall(r'(\d+)_0').apply(lambda x: sum(map(int, x)))  # 转换为整数并求和
+    # 将 N_0 转换为整数类型
+    ot_res_df["N_0"] = pd.to_numeric(ot_res_df["N_0"], errors="coerce")
+
+    # N >= 2 pass
+    ot_res_df = ot_res_df[ot_res_df["N_0"]==1]
+    print(f"N0 filter,current num {len(ot_res_df)}")
+    del(ot_res_df["N_0"])
+    # print(ot_res_df)
+    # ot_res_df.to_csv("ttt.tsv",sep="\t",index=False)
+    return ot_res_df
+
+
+def run_filter(nc_no) -> None:
+    # glob file
+    ot_res_li = Path("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res_ngg/").glob(f"{nc_no}*tsv")
+    for ot_res in ot_res_li:
+        ot_res_df = ot_res2df(ot_res)
+        filtered_gRNA_list(ot_res_df).to_csv(str(ot_res).replace("all_res","all_res_filter"),sep="\t",index=False)
     
     
     
@@ -68,9 +68,15 @@ def main() -> None:
     nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    # run_map(nc_li[-1])
-    async_in_iterable_structure(run_map,nc_li,24)
+    run_filter(nc_li[-1])
+    # async_in_iterable_structure(run_filter,nc_li,24)
+    # print("ot search result filtered,scoring...")
+    # run_score_cmd("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res_filter_ngg/NC_000024.10_1.tsv")
+    # file_li = Path("/mnt/ntc_data/wayne/Repositories/CRISPR/score/CFD_Scoring/test/all_res_filter/").glob("*tsv")
+    # async_in_iterable_structure(run_score_cmd,file_li,24)
     
-    
+
+
 if __name__ == "__main__":
     main()
+
