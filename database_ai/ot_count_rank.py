@@ -13,6 +13,7 @@ def count_rank(nc_no: str) -> None:
     for res in ot_res_li:
         df = pd.read_csv(res,sep="\t",usecols=[0, 5, 6, 7])
         for contig, sub_df in df.groupby("contig"):
+            sub_df = sub_df[sub_df["orientation"]=="FWD"]
             ot_count = sum(sub_df["otCount"]) - 1
             of_li = sub_df["overflow"].to_list()
             if ot_count > 99 or "OVERFLOW" in of_li:
@@ -47,7 +48,7 @@ def main() -> None:
     # sort by nc_li
     res = res.sort_index()
     
-    res.to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/all_ot_rank.xls",sep="\t",index=False)
+    res.to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/database_ai/all_ot_rank.xls",sep="\t",index=True)
 
 if __name__ == "__main__":
     main()
