@@ -45,7 +45,7 @@ for nc_no in nc_li:
         
         raw_rank_bottom = (raw_count // 10) * 10 + 1
         raw_rank_top = ((raw_count // 10) + 1) * 10
-        rank_str = f"{raw_rank_bottom}-{raw_rank_top}" if raw_rank_bottom < 40 else "40+"
+        rank_str = f"{raw_rank_bottom}-{raw_rank_top}" if raw_rank_bottom < 50 else "50+"
         counter_raw[rank_str] += 1
         # low filter sub df
         filtered_sub_df = sub_df[(sub_df[13]>0.3)&(sub_df[17]>0.1)]
@@ -60,7 +60,7 @@ for nc_no in nc_li:
             
             raw_rank_bottom = (filter_count // 10) * 10 + 1
             raw_rank_top = ((filter_count // 10) + 1) * 10
-            rank_str = f"{raw_rank_bottom}-{raw_rank_top}" if raw_rank_bottom < 40 else "40+"
+            rank_str = f"{raw_rank_bottom}-{raw_rank_top}" if raw_rank_bottom < 50 else "50+"
             counter_low_filter[rank_str] += 1
         # filter sub df
         filtered_sub_df = sub_df[(sub_df[13]>=0.5)&(sub_df[17]>=0.5)]
@@ -76,7 +76,7 @@ for nc_no in nc_li:
             
             raw_rank_bottom = (filter_count // 10) * 10 + 1
             raw_rank_top = ((filter_count // 10) + 1) * 10
-            rank_str = f"{raw_rank_bottom}-{raw_rank_top}" if raw_rank_bottom < 40 else "40+"
+            rank_str = f"{raw_rank_bottom}-{raw_rank_top}" if raw_rank_bottom < 50 else "50+"
             counter_high_filter[rank_str] += 1
 
 
@@ -94,4 +94,4 @@ counter_high_filter['0'] += len(left_gene_li['high_filter'])
 print(counter_raw)
 print(counter_low_filter)
 print(counter_high_filter)
-print(f"Max num is {max_num}")
+# print(f"Max num is {max_num}")
