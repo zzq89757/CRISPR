@@ -31,5 +31,9 @@ header
 *pickle
 Azimuth
 Rule_Set_2_scoring_v1
+<<<<<<< HEAD
 STARS
 *.jar
+=======
+STARS
+>>>>>>> fce1903c581ad706ef1336b7872026b2ae6b2929

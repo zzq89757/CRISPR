@@ -48,7 +48,11 @@ def append_gene_id_col(gtf_df: pd.DataFrame) -> None:
 
 
 def cut_gtf(nc_no: str, gtf_df: pd.DataFrame) -> None:
+<<<<<<< HEAD
     nc2chr_file = "/mnt_data/Wayne/Repositories/CRISPR/nc2chr.tsv"
+=======
+    nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
+>>>>>>> fce1903c581ad706ef1336b7872026b2ae6b2929
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     chr_li = ["chr" + str(x) for x in (list(range(1, 23)) + ["X", "Y"])]
@@ -74,12 +78,20 @@ def cut_gtf(nc_no: str, gtf_df: pd.DataFrame) -> None:
         # 重新对列进行排序
         all_gene_li.append(gene_item[[9, 10, 11, 0, 12, 6, 3, 4, 13, 14]])
     # 生成gene info表
+<<<<<<< HEAD
     pd.DataFrame(all_gene_li).to_csv(f"/mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/{chr_name}.tsv",header=None,index=False,sep="\t")
+=======
+    pd.DataFrame(all_gene_li).to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/{chr_name}.tsv",header=None,index=False,sep="\t")
+>>>>>>> fce1903c581ad706ef1336b7872026b2ae6b2929
 
 
 
 def run_cut(nc_no: str) -> None:
+<<<<<<< HEAD
     gtf_file = f"/mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/{nc_no}.gtf"
+=======
+    gtf_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/{nc_no}.gtf"
+>>>>>>> fce1903c581ad706ef1336b7872026b2ae6b2929
     # 记录程序开始时间
     t = time.time()
     # 读取gtf文件 生成df
@@ -93,7 +105,11 @@ def run_cut(nc_no: str) -> None:
 
 
 def main() -> None:
+<<<<<<< HEAD
     nc2chr_file = "/mnt_data/Wayne/Repositories/CRISPR/nc2chr.tsv"
+=======
+    nc2chr_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/nc2chr.tsv"
+>>>>>>> fce1903c581ad706ef1336b7872026b2ae6b2929
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     async_in_iterable_structure(run_cut,nc_li,24)

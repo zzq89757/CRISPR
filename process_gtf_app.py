@@ -120,7 +120,11 @@ def run_cut(nc_no: str) -> None:
 
 
 def main() -> None:
+<<<<<<< HEAD
     nc2chr_file = "/mnt_data/Wayne/Repositories/CRISPR/nc2chr.tsv"
+=======
+    nc2chr_file = "nc2chr.tsv"
+>>>>>>> fce1903c581ad706ef1336b7872026b2ae6b2929
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
     chr_li = ["chr" + str(x) for x in (list(range(1, 23)) + ["X", "Y"])]
