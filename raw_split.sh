@@ -1,0 +1,24 @@
+awk '$1=="NC_000001.11"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000001.11.gtf &
+awk '$1=="NC_000002.12"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000002.12.gtf &
+awk '$1=="NC_000003.12"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000003.12.gtf &
+awk '$1=="NC_000004.12"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000004.12.gtf &
+awk '$1=="NC_000005.10"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000005.10.gtf &
+awk '$1=="NC_000006.12"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000006.12.gtf &
+awk '$1=="NC_000007.14"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000007.14.gtf &
+awk '$1=="NC_000008.11"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000008.11.gtf &
+awk '$1=="NC_000009.12"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000009.12.gtf &
+awk '$1=="NC_000010.11"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000010.11.gtf &
+awk '$1=="NC_000011.10"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000011.10.gtf &
+awk '$1=="NC_000012.12"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000012.12.gtf &
+awk '$1=="NC_000013.11"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000013.11.gtf &
+awk '$1=="NC_000014.9"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000014.9.gtf &
+awk '$1=="NC_000015.10"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000015.10.gtf &
+awk '$1=="NC_000016.10"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000016.10.gtf &
+awk '$1=="NC_000017.11"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000017.11.gtf &
+awk '$1=="NC_000018.10"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000018.10.gtf &
+awk '$1=="NC_000019.10"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000019.10.gtf &
+awk '$1=="NC_000020.11"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000020.11.gtf &
+awk '$1=="NC_000021.9"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000021.9.gtf &
+awk '$1=="NC_000022.11"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000022.11.gtf &
+awk '$1=="NC_000023.11"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000023.11.gtf &
+awk '$1=="NC_000024.10"' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf > /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/NC_000024.10.gtf

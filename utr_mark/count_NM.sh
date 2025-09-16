@@ -1,0 +1,25 @@
+# awk '$16~/NM/' count_NM.sh | wc -l
+awk '$16~/NM/' NC_000001.11.tsv | wc -l
+awk '$16~/NM/' NC_000002.12.tsv | wc -l
+awk '$16~/NM/' NC_000003.12.tsv | wc -l
+awk '$16~/NM/' NC_000004.12.tsv | wc -l
+awk '$16~/NM/' NC_000005.10.tsv | wc -l
+awk '$16~/NM/' NC_000006.12.tsv | wc -l
+awk '$16~/NM/' NC_000007.14.tsv | wc -l
+awk '$16~/NM/' NC_000008.11.tsv | wc -l
+awk '$16~/NM/' NC_000009.12.tsv | wc -l
+awk '$16~/NM/' NC_000010.11.tsv | wc -l
+awk '$16~/NM/' NC_000011.10.tsv | wc -l
+awk '$16~/NM/' NC_000012.12.tsv | wc -l
+awk '$16~/NM/' NC_000013.11.tsv | wc -l
+awk '$16~/NM/' NC_000014.9.tsv | wc -l
+awk '$16~/NM/' NC_000015.10.tsv | wc -l
+awk '$16~/NM/' NC_000016.10.tsv | wc -l
+awk '$16~/NM/' NC_000017.11.tsv | wc -l
+awk '$16~/NM/' NC_000018.10.tsv | wc -l
+awk '$16~/NM/' NC_000019.10.tsv | wc -l
+awk '$16~/NM/' NC_000020.11.tsv | wc -l
+awk '$16~/NM/' NC_000021.9.tsv | wc -l
+awk '$16~/NM/' NC_000022.11.tsv | wc -l
+awk '$16~/NM/' NC_000023.11.tsv | wc -l
+awk '$16~/NM/' NC_000024.10.tsv | wc -l

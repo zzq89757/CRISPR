@@ -1,0 +1,1 @@
+cut -f1 nc2chr.tsv | xargs -I {} -P 24 echo  awk \'\$1==\"{}\"\' /mnt_data/Wayne/Repositories/CRISPR/GCF_000001405.40/GCF_000001405.40_GRCh38.p14_genomic.gtf ">" /mnt_data/Wayne/Repositories/CRISPR/split_gtf/raw_gtf_split/{}.gtf "&" > raw_split.sh
