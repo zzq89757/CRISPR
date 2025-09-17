@@ -14,7 +14,7 @@ def re_num(nc_no: str) -> None:
     db_ai_path = f"/mnt_data/Wayne/Repositories/CRISPR/database_ai/snp_mark/{nc_no}.tsv"
     re_num_path = f"/mnt_data/Wayne/Repositories/CRISPR/database_ai/re_num/{nc_no}.tsv"
     # 文件读取为df
-    old_ko_df = pd.read_csv(old_ko_path,sep="\t")
+    old_ko_df = pd.read_csv(old_ko_path,sep="\t") 
     fresh_ko_df = pd.read_csv(fresh_ko_path,sep="\t",header=None)
     db_ai_df = pd.read_csv(db_ai_path,sep="\t",header=None)
     # 读取 ai 库 group by gene id
