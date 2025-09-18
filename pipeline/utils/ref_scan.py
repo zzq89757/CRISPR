@@ -8,8 +8,7 @@ def reverse_complement(seq: str) -> str:
     trantab = str.maketrans("ACGTNacgtnRYMKrymkVBHDvbhd", "TGCANtgcanYRKMyrkmBVDHbvdh")
     return seq.translate(trantab)[::-1]
 
-def ref_scan(project_dir: str, ref_file: str, raw_db: str) -> None:
-    nc_no = Path(ref_file).name.split(".")[0]
+def ref_scan(nc_no: str, chr_name:str, ref_file: str, raw_db: str) -> None:
     ref = FastaFile(ref_file)
     output = open(
         raw_db, "w"
@@ -56,3 +55,7 @@ def ref_scan(project_dir: str, ref_file: str, raw_db: str) -> None:
                 grna_cut = i + 7
                 detail = f"{sgRNA}\t{pam_seq}\t{chr_name}\t-\t{grna_start}\t{grna_end}\t{grna_cut}"
                 print(detail, file=output)
+
+
+if __name__ == "__main__":
+    ref_scan("NC_000075.7", "chr9", "/mnt_data/Wayne/Repositories/CRISPR/pipeline/mus/GCF/fa/NC_000075.7.fa", "/mnt_data/Wayne/Repositories/CRISPR/pipeline/mus/ref_scan/NC_000075.7.tsv")

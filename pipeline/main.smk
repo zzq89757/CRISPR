@@ -9,27 +9,27 @@ configfile: "config.yaml"
 
 
 project_dir = config.get("project_dir")
-nc_li = (
-    config.get("nc_li")
-    if isinstance(config.get("nc_li"), list)
-    else pd.read_csv(config.get("nc_li"), header=None)[0].to_list()
-)
+nc_li = pd.read_csv(config.get("nc_li"), header=None, sep="\t")[0].to_list()
+chr_li = pd.read_csv(config.get("nc_li"), header=None, sep="\t")[1].to_list()
+nc2chr_dict = dict(zip(nc_li,chr_li))
 fna_file = config.get("fna_file")
 gtf_file = config.get("gtf_file")
 vcf_file = config.get("vcf_file")
-print(nc_li)
 
 
 rule all:
     input:
+        # expand(
+        #     "{project_dir}/GCF/gtf/{sample}.gtf", project_dir=project_dir, sample=nc_li
+        # ),
+        # expand(
+        #     "{project_dir}/GCF/fa/{sample}.fa", project_dir=project_dir, sample=nc_li
+        # ),
+        # expand(
+        #     "{project_dir}/GCF/vcf/{sample}.vcf", project_dir=project_dir, sample=nc_li
+        # ),
         expand(
-            "{project_dir}/GCF/gtf/{sample}.gtf", project_dir=project_dir, sample=nc_li
-        ),
-        expand(
-            "{project_dir}/GCF/fa/{sample}.fa", project_dir=project_dir, sample=nc_li
-        ),
-        expand(
-            "{project_dir}/GCF/vcf/{sample}.vcf", project_dir=project_dir, sample=nc_li
+            "{project_dir}/ref_scan/{sample}.tsv", project_dir=project_dir, sample=nc_li
         ),
 
 
@@ -43,18 +43,20 @@ rule data_prepare:
         fa="{project_dir}/GCF/fa/{sample}.fa",
         vcf="{project_dir}/GCF/vcf/{sample}.vcf",
     run:
-        Path(f"{project_dir}/GCF/fa").mkdir(exist_ok=True,parents=True)
-        Path(f"{project_dir}/GCF/vcf").mkdir(exist_ok=True,parents=True)
-        Path(f"{project_dir}/GCF/gtf").mkdir(exist_ok=True,parents=True)
+        Path(f"{project_dir}/GCF/fa").mkdir(exist_ok=True, parents=True)
+        Path(f"{project_dir}/GCF/vcf").mkdir(exist_ok=True, parents=True)
+        Path(f"{project_dir}/GCF/gtf").mkdir(exist_ok=True, parents=True)
         # 这里调用单个样本的处理逻辑
         data_prepare(project_dir, wildcards.sample, input)
 
 
 rule search_ref:
-    input: 
-        ref = "{project_dir}/GCF/fa/{sample}.fa"
-    output: 
-        raw_db = "{project_dir}/ref_scan/{sample}.tsv"
-    run: 
-        Path(f"{project_dir}/ref_scan").mkdir(exist_ok=True,parents=True)
-        ref_scan(project_dir, input.ref, output.raw_db)
+    input:
+        ref="{project_dir}/GCF/fa/{sample}.fa",
+    output:
+        raw_db="{project_dir}/ref_scan/{sample}.tsv",
+    params:
+        chr_name = lambda wildcards: nc2chr_dict[wildcards.sample]
+    run:
+        Path(f"{project_dir}/ref_scan").mkdir(exist_ok=True, parents=True)
+        ref_scan(wildcards.sample, params.chr_name, input.ref, output.raw_db)
