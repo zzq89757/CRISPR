@@ -40,7 +40,6 @@ def ref_scan(nc_no: str, chr_name:str, ref_file: str, raw_db: str) -> None:
                 grna_end = i - 2
                 grna_cut = i - 5
                 detail = f"{sgRNA}\t{pam_seq}\t{chr_name}\t+\t{grna_start}\t{grna_end}\t{grna_cut}\n"
-                # print(detail, file=output)
                 output.write(detail)
 
         # NGG reverse
@@ -58,7 +57,6 @@ def ref_scan(nc_no: str, chr_name:str, ref_file: str, raw_db: str) -> None:
                 grna_end = i + 4
                 grna_cut = i + 7
                 detail = f"{sgRNA}\t{pam_seq}\t{chr_name}\t-\t{grna_start}\t{grna_end}\t{grna_cut}\n"
-                # print(detail, file=output)
                 output.write(detail)
 
 
