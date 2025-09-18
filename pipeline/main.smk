@@ -60,3 +60,13 @@ rule search_ref:
     run:
         Path(f"{project_dir}/ref_scan").mkdir(exist_ok=True, parents=True)
         ref_scan(wildcards.sample, params.chr_name, input.ref, output.raw_db)
+
+
+rule gene_annotate:
+    input: 
+        raw_db="{project_dir}/ref_scan/{sample}.tsv"
+    output: 
+        gene_annotated_db = "{project_dir}/gene_annotated/{sample}.tsv"
+    run: 
+        Path(f"{project_dir}/gene_annotated").mkdir(exist_ok=True, parents=True)
+        

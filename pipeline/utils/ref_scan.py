@@ -59,3 +59,4 @@ def ref_scan(nc_no: str, chr_name:str, ref_file: str, raw_db: str) -> None:
 
 if __name__ == "__main__":
     ref_scan("NC_000075.7", "chr9", "/mnt_data/Wayne/Repositories/CRISPR/pipeline/mus/GCF/fa/NC_000075.7.fa", "/mnt_data/Wayne/Repositories/CRISPR/pipeline/mus/ref_scan/NC_000075.7.tsv")
+    
