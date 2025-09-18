@@ -1,5 +1,3 @@
-from pathlib import Path
-import pandas as pd
 import re
 from pysam import FastaFile
 
@@ -8,23 +6,26 @@ def reverse_complement(seq: str) -> str:
     trantab = str.maketrans("ACGTNacgtnRYMKrymkVBHDvbhd", "TGCANtgcanYRKMyrkmBVDHbvdh")
     return seq.translate(trantab)[::-1]
 
+
 def ref_scan(nc_no: str, chr_name:str, ref_file: str, raw_db: str) -> None:
     ref = FastaFile(ref_file)
     output = open(
         raw_db, "w"
     )
-    print(
-        "gRNA_Seq\tPAM\tchr\tchr_strand\tgRNA_start(in chr)\tgRNA_end(in chr)\tgRNA_cut(in chr)",
-        file=output,
-    )
-
+    # 打印表头
+    # print(
+    #     "gRNA_Seq\tPAM\tchr\tchr_strand\tgRNA_start(in chr)\tgRNA_end(in chr)\tgRNA_cut(in chr)",
+    #     file=output,
+    # )
+    # 获取nc号对应的染色体参考序列
     ref_seq = ref.fetch(nc_no)
     ref_len = len(ref_seq)
     for i in range(ref_len):
+        # 跳过含N的序列
         if ref_seq[i] == "N":
             continue
 
-        # NGG or NAG forward
+        # 扫描NGG
         if (
             i >= 22
             and ref_seq[i] == "G"
@@ -41,7 +42,7 @@ def ref_scan(nc_no: str, chr_name:str, ref_file: str, raw_db: str) -> None:
                 detail = f"{sgRNA}\t{pam_seq}\t{chr_name}\t+\t{grna_start}\t{grna_end}\t{grna_cut}"
                 print(detail, file=output)
 
-        # NGG or NAG reverse
+        # NGG reverse
         if (
             i <= ref_len - 23
             and ref_seq[i] == "C"
