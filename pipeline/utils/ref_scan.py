@@ -28,7 +28,8 @@ def ref_scan(nc_no: str, chr_name:str, ref_file: str, raw_db: str) -> None:
         if (
             i >= 22
             and ref_seq[i] == "G"
-            and (ref_seq[i - 1] == "A" or ref_seq[i - 1] == "G")
+            and ref_seq[i - 1] == "G"
+            # and (ref_seq[i - 1] == "A" or ref_seq[i - 1] == "G")
         ):
             sgRNA = ref_seq[i - 22 : i - 2]
             # if sgRNA.find("TTTT") == -1 and ref_seq[i - 22 : i - 1].find("N") == -1:
@@ -44,7 +45,8 @@ def ref_scan(nc_no: str, chr_name:str, ref_file: str, raw_db: str) -> None:
         if (
             i <= ref_len - 23
             and ref_seq[i] == "C"
-            and (ref_seq[i + 1] == "T" or ref_seq[i + 1] == "C")
+            and ref_seq[i + 1] == "C"
+            # and (ref_seq[i + 1] == "T" or ref_seq[i + 1] == "C")
         ):
             sgRNA = reverse_complement(ref_seq[i + 3 : i + 23])
             # if sgRNA.find("TTTT") == -1 and ref_seq[i + 2 : i + 23].find("N") == -1:
@@ -59,4 +61,3 @@ def ref_scan(nc_no: str, chr_name:str, ref_file: str, raw_db: str) -> None:
 
 if __name__ == "__main__":
     ref_scan("NC_000075.7", "chr9", "/mnt_data/Wayne/Repositories/CRISPR/pipeline/mus/GCF/fa/NC_000075.7.fa", "/mnt_data/Wayne/Repositories/CRISPR/pipeline/mus/ref_scan/NC_000075.7.tsv")
-    
