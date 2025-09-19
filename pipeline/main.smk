@@ -4,14 +4,14 @@ import pandas as pd
 from pathlib import Path
 
 
-# 读取配置文件
-configfile: "config.yaml"
+# 读取配置文件信息
+# configfile: "config.yaml"
 
 
 project_dir = config.get("project_dir")
 nc_li = pd.read_csv(config.get("nc_li"), header=None, sep="\t")[0].to_list()
 chr_li = pd.read_csv(config.get("nc_li"), header=None, sep="\t")[1].to_list()
-nc2chr_dict = dict(zip(nc_li,chr_li))
+nc2chr_dict = dict(zip(nc_li, chr_li))
 fna_file = config.get("fna_file")
 gtf_file = config.get("gtf_file")
 vcf_file = config.get("vcf_file")
@@ -29,7 +29,9 @@ rule all:
         #     "{project_dir}/GCF/vcf/{sample}.vcf", project_dir=project_dir, sample=nc_li
         # ),
         expand(
-            "{project_dir}/ref_scan/{sample}.tsv", project_dir=project_dir, sample=nc_li
+            "{project_dir}/ref_scan/{sample}.tsv",
+            project_dir=project_dir,
+            sample=nc_li,
         ),
 
 
@@ -56,17 +58,16 @@ rule search_ref:
     output:
         raw_db="{project_dir}/ref_scan/{sample}.tsv",
     params:
-        chr_name = lambda wildcards: nc2chr_dict[wildcards.sample]
+        chr_name=lambda wildcards: nc2chr_dict[wildcards.sample],
     run:
         Path(f"{project_dir}/ref_scan").mkdir(exist_ok=True, parents=True)
         ref_scan(wildcards.sample, params.chr_name, input.ref, output.raw_db)
 
 
 rule gene_annotate:
-    input: 
-        raw_db="{project_dir}/ref_scan/{sample}.tsv"
-    output: 
-        gene_annotated_db = "{project_dir}/gene_annotated/{sample}.tsv"
-    run: 
+    input:
+        raw_db="{project_dir}/ref_scan/{sample}.tsv",
+    output:
+        gene_annotated_db="{project_dir}/gene_annotated/{sample}.tsv",
+    run:
         Path(f"{project_dir}/gene_annotated").mkdir(exist_ok=True, parents=True)
-        
