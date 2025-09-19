@@ -1,5 +1,6 @@
 from utils.data_prepare import data_prepare
 from utils.ref_scan import ref_scan
+from utils.merge_raw import merge_with_order
 import pandas as pd
 from pathlib import Path
 
@@ -28,11 +29,14 @@ rule all:
         # expand(
         #     "{project_dir}/GCF/vcf/{sample}.vcf", project_dir=project_dir, sample=nc_li
         # ),
-        expand(
-            "{project_dir}/ref_scan/{sample}.tsv",
-            project_dir=project_dir,
-            sample=nc_li,
-        ),
+        # expand(
+        #     "{project_dir}/ref_scan/{sample}.tsv",
+        #     project_dir=project_dir,
+        #     sample=nc_li,
+        # ),
+        # f"{project_dir}/ref_scan/all.tsv"
+        # f"{project_dir}/ref_scan/lc_all",
+        "{project_dir}/raw_with_id/{sample}.tsv"
 
 
 rule data_prepare:
@@ -64,10 +68,45 @@ rule search_ref:
         ref_scan(wildcards.sample, params.chr_name, input.ref, output.raw_db)
 
 
-rule gene_annotate:
+# rule merge_raw_add_id:
+#     input: 
+#         expand("{project_dir}/ref_scan/{sample}.tsv", project_dir=project_dir, sample=nc_li)
+#         # raw_db="{project_dir}/ref_scan/{sample}.tsv"
+#     output: 
+#         raw_db_merge=f"{project_dir}/ref_scan/all.tsv"
+#     run:
+#         merge_with_order(project_dir,nc_li,output.raw_db_merge)
+
+rule generate_line_count_file:
+    input: 
+        # raw_db="{project_dir}/ref_scan/{sample}.tsv",
+        tsvs = expand("{project_dir}/ref_scan/{sample}.tsv", project_dir=project_dir, sample=nc_li)
+        # tsvs = [f"{project_dir}/ref_scan/{s}.tsv" for s in nc_li]
+    output: 
+        tmp_lc_file="{project_dir}/ref_scan/lc_tmp",
+        lc_file="{project_dir}/ref_scan/lc_all",
+    shell:
+        r"""
+        wc -l {input.tsvs} > {output.tmp_lc_file}
+        sed -i 's/^[[:space:]]*//' {output.tmp_lc_file}
+        cut -d " " -f1 {output.tmp_lc_file} > {output.lc_file}
+        """
+
+rule add_raw_id:
     input:
         raw_db="{project_dir}/ref_scan/{sample}.tsv",
+        lc_file="{project_dir}/ref_scan/lc_all",
     output:
-        gene_annotated_db="{project_dir}/gene_annotated/{sample}.tsv",
+        raw_db_with_id="{project_dir}/raw_with_id/{sample}.tsv",
     run:
-        Path(f"{project_dir}/gene_annotated").mkdir(exist_ok=True, parents=True)
+        Path(f"{project_dir}/raw_with_id").mkdir(exist_ok=True, parents=True)
+
+
+
+# rule gene_annotate:
+#     input:
+#         raw_db="{project_dir}/raw_with_id/{sample}.tsv",
+#     output:
+#         gene_annotated_db="{project_dir}/gene_annotated/{sample}.tsv",
+#     run:
+#         Path(f"{project_dir}/gene_annotated").mkdir(exist_ok=True, parents=True)
