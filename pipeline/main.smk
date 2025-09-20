@@ -74,21 +74,16 @@ rule search_ref:
         ref_scan(wildcards.sample, params.chr_name, input.ref, output.raw_db)
 
 
-# rule merge_raw_add_id:
-#     input: 
-#         expand("{project_dir}/ref_scan/{sample}.tsv", project_dir=project_dir, sample=nc_li)
-#         # raw_db="{project_dir}/ref_scan/{sample}.tsv"
-#     output: 
-#         raw_db_merge=f"{project_dir}/ref_scan/all.tsv"
-#     run:
-#         merge_with_order(project_dir,nc_li,output.raw_db_merge)
-
 rule generate_line_count_file:
-    input: 
+    input:
         # raw_db="{project_dir}/ref_scan/{sample}.tsv",
-        tsvs = expand("{project_dir}/ref_scan/{sample}.tsv", project_dir=project_dir, sample=nc_li)
+        tsvs=expand(
+            "{project_dir}/ref_scan/{sample}.tsv",
+            project_dir=project_dir,
+            sample=nc_li,
+        ),
         # tsvs = [f"{project_dir}/ref_scan/{s}.tsv" for s in nc_li]
-    output: 
+    output:
         tmp_lc_file="{project_dir}/ref_scan/lc_tmp",
         lc_file="{project_dir}/ref_scan/lc_all",
     shell:
@@ -98,6 +93,7 @@ rule generate_line_count_file:
         cut -d " " -f1 {output.tmp_lc_file} > {output.lc_file}
         """
 
+
 rule add_raw_id:
     input:
         raw_db="{project_dir}/ref_scan/{sample}.tsv",
@@ -105,10 +101,10 @@ rule add_raw_id:
     output:
         raw_db_with_id="{project_dir}/raw_with_id/{sample}.tsv",
     params:
-        nc_idx = lambda wildcards:nc_li.index(wildcards.sample)
+        nc_idx=lambda wildcards: nc_li.index(wildcards.sample),
     run:
         Path(f"{project_dir}/raw_with_id").mkdir(exist_ok=True, parents=True)
-        add_raw_id(params.nc_idx, input.lc_file,input.raw_db,output.raw_db_with_id)
+        add_raw_id(params.nc_idx, input.lc_file, input.raw_db, output.raw_db_with_id)
 
 
 # rule gene_annotate:
