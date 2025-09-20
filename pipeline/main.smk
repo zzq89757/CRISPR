@@ -1,6 +1,7 @@
 from utils.data_prepare import data_prepare
 from utils.ref_scan import ref_scan
 from utils.merge_raw import merge_with_order
+from utils.add_raw_id import add_raw_id
 import pandas as pd
 from pathlib import Path
 
@@ -98,9 +99,11 @@ rule add_raw_id:
         lc_file="{project_dir}/ref_scan/lc_all",
     output:
         raw_db_with_id="{project_dir}/raw_with_id/{sample}.tsv",
+    params:
+        nc_idx = lambda wildcards:nc_li.index(wildcards.sample)
     run:
         Path(f"{project_dir}/raw_with_id").mkdir(exist_ok=True, parents=True)
-
+        add_raw_id(nc_idx, input.lc_file,input.raw_db,output.raw_db_with_id)
 
 
 # rule gene_annotate:
