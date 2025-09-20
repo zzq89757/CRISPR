@@ -37,7 +37,12 @@ rule all:
         # ),
         # f"{project_dir}/ref_scan/all.tsv"
         # f"{project_dir}/ref_scan/lc_all",
-        "{project_dir}/raw_with_id/{sample}.tsv"
+        # f"{project_dir}/raw_with_id/{sample}.tsv"
+        expand(
+            "{project_dir}/raw_with_id/{sample}.tsv",
+            project_dir=project_dir,
+            sample=nc_li,
+        ),
 
 
 rule data_prepare:
@@ -103,7 +108,7 @@ rule add_raw_id:
         nc_idx = lambda wildcards:nc_li.index(wildcards.sample)
     run:
         Path(f"{project_dir}/raw_with_id").mkdir(exist_ok=True, parents=True)
-        add_raw_id(nc_idx, input.lc_file,input.raw_db,output.raw_db_with_id)
+        add_raw_id(params.nc_idx, input.lc_file,input.raw_db,output.raw_db_with_id)
 
 
 # rule gene_annotate:
