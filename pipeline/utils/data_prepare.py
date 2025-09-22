@@ -2,13 +2,11 @@ from os import system
 from pathlib import Path
 from pysam import FastaFile
 
-def deal_dir(project_dir: str) -> None:
-    Path(f"{project_dir}/GCF/fa").mkdir(exist_ok=True,parents=True)
-    Path(f"{project_dir}/GCF/vcf").mkdir(exist_ok=True,parents=True)
-    Path(f"{project_dir}/GCF/gtf").mkdir(exist_ok=True,parents=True)
+def process_gtf(project_dir: str, nc_no: str) -> None:
+    ...
 
 
-def data_prepare(project_dir: str, nc_no: str, input_dict: dict) -> None:
+def data_prepare(project_dir: str, nc_no: str, chr_name: str, input_dict: dict) -> None:
     # 创建路径
     # deal_dir(project_dir)
     # 接受文件路径字典
@@ -19,13 +17,15 @@ def data_prepare(project_dir: str, nc_no: str, input_dict: dict) -> None:
     # 处理逻辑：
     # 考虑输入文件是否解压
     if gtf_file.endswith("gz"):
-        system(f"zcat {gtf_file} | awk '$1=={nc_no}' > {project_dir}/GCF/gtf/{nc_no}.gtf")
+        system(f"zcat {gtf_file} | awk '$1==\"{nc_no}\"' > {project_dir}/GCF/gtf/{nc_no}.gtf")
     else:
-        system(f"awk '$1=={nc_no}' {gtf_file} > {project_dir}/GCF/gtf/{nc_no}.gtf")
+        system(f"awk '$1==\"{nc_no}\"' {gtf_file} > {project_dir}/GCF/gtf/{nc_no}.gtf")
+    # 根据nc号获取染色体
+    chr_no = chr_name.replace("chr","")
     if vcf_file.endswith("gz"):
-        system(f"zcat {vcf_file} | awk '$1=={nc_no}' > {project_dir}/GCF/vcf/{nc_no}.vcf")
+        system(f"zcat {vcf_file} | awk '$1==\"{chr_no}\"' > {project_dir}/GCF/vcf/{nc_no}.vcf")
     else:
-        system(f"awk '$1=={nc_no}' {vcf_file} > {project_dir}/GCF/vcf/{nc_no}.vcf")
+        system(f"awk '$1==\"{chr_no}\"' {vcf_file} > {project_dir}/GCF/vcf/{nc_no}.vcf")
     
     # 对于fa 直接解压
     if fna_file.endswith("gz"):
@@ -42,6 +42,7 @@ def data_prepare(project_dir: str, nc_no: str, input_dict: dict) -> None:
 
     ofa.close()    
     
+    # 将gtf拆分为CDS、GENE_LIST、EXON、TRAN等文件
 
     
     
