@@ -123,3 +123,11 @@ rule gene_annotate:
     run:
         Path(f"{project_dir}/gene_annotated").mkdir(exist_ok=True, parents=True)
         gene_annotate(project_dir, wildcards.sample)
+
+rule filter_intron:
+    input:
+        gene_annotated_db = "{project_dir}/gene_annotated/{sample}.tsv",
+    output:
+        intron_filtered_db = "{project_dir}/intron_filtered/{sample}.tsv"
+    run:
+        Path(f"{project_dir}/intron_filtered").mkdir(exist_ok=True,parents=True)
