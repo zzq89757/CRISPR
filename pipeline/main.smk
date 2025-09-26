@@ -122,4 +122,4 @@ rule gene_annotate:
         gene_annotated_db="{project_dir}/gene_annotated/{sample}.tsv",
     run:
         Path(f"{project_dir}/gene_annotated").mkdir(exist_ok=True, parents=True)
-        gene_annotate(project_dir,wildcards.sample)
+        gene_annotate(project_dir, wildcards.sample)
