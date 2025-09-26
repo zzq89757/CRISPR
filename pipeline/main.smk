@@ -2,6 +2,7 @@ from utils.data_prepare import data_prepare
 from utils.ref_scan import ref_scan
 from utils.merge_raw import merge_with_order
 from utils.add_raw_id import add_raw_id
+from utils.gene_annotate import gene_annotate
 import pandas as pd
 from pathlib import Path
 
@@ -21,15 +22,15 @@ vcf_file = config.get("vcf_file")
 
 rule all:
     input:
-        expand(
-            "{project_dir}/GCF/gtf/{sample}.gtf", project_dir=project_dir, sample=nc_li
-        ),
-        expand(
-            "{project_dir}/GCF/fa/{sample}.fa", project_dir=project_dir, sample=nc_li
-        ),
-        expand(
-            "{project_dir}/GCF/vcf/{sample}.vcf", project_dir=project_dir, sample=nc_li
-        ),
+        # expand(
+        #     "{project_dir}/GCF/gtf/{sample}.gtf", project_dir=project_dir, sample=nc_li
+        # ),
+        # expand(
+        #     "{project_dir}/GCF/fa/{sample}.fa", project_dir=project_dir, sample=nc_li
+        # ),
+        # expand(
+        #     "{project_dir}/GCF/vcf/{sample}.vcf", project_dir=project_dir, sample=nc_li
+        # ),
         # expand(
         #     "{project_dir}/ref_scan/{sample}.tsv",
         #     project_dir=project_dir,
@@ -43,6 +44,11 @@ rule all:
         #     project_dir=project_dir,
         #     sample=nc_li,
         # ),
+        expand(
+            "{project_dir}/gene_annotated/{sample}.tsv",
+            project_dir=project_dir,
+            sample=nc_li,
+        ),
 
 
 rule data_prepare:
@@ -109,10 +115,11 @@ rule add_raw_id:
         add_raw_id(params.nc_idx, input.lc_file, input.raw_db, output.raw_db_with_id)
 
 
-# rule gene_annotate:
-#     input:
-#         raw_db="{project_dir}/raw_with_id/{sample}.tsv",
-#     output:
-#         gene_annotated_db="{project_dir}/gene_annotated/{sample}.tsv",
-#     run:
-#         Path(f"{project_dir}/gene_annotated").mkdir(exist_ok=True, parents=True)
+rule gene_annotate:
+    input:
+        raw_db="{project_dir}/raw_with_id/{sample}.tsv",
+    output:
+        gene_annotated_db="{project_dir}/gene_annotated/{sample}.tsv",
+    run:
+        Path(f"{project_dir}/gene_annotated").mkdir(exist_ok=True, parents=True)
+        gene_annotate(project_dir,wildcards.sample)

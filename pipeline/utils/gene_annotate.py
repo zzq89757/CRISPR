@@ -120,9 +120,10 @@ def gdb_annotation(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame, scaffold_pos_li
         while (current_gene_pos_idx < gene_pos_len -1  and g_pos > gene_end):
             current_gene_pos_idx += 1
             # 同步更新scaffold_pos_idx
-            border_right = scaffold_pos_li[current_scaffold_pos_idx][1] if current_scaffold_pos_idx < scaffold_pos_len else scaffold_pos_li[-1][1]
-            if current_gene_pos_idx > border_right and current_scaffold_pos_idx <= scaffold_pos_len:
-                current_scaffold_pos_idx += 1
+            if scaffold_pos_len != 0:
+                border_right = scaffold_pos_li[current_scaffold_pos_idx][1] if current_scaffold_pos_idx < scaffold_pos_len else scaffold_pos_li[-1][1]
+                if current_gene_pos_idx > border_right and current_scaffold_pos_idx <= scaffold_pos_len:
+                    current_scaffold_pos_idx += 1
             gene_start = gene_start_array[current_gene_pos_idx]
             gene_end = gene_end_array[current_gene_pos_idx]
         
@@ -131,25 +132,26 @@ def gdb_annotation(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame, scaffold_pos_li
             break
         
         # 处于scaffold中的gRNA处理
-        if current_scaffold_pos_idx < scaffold_pos_len and scaffold_pos_li[current_scaffold_pos_idx][0] <= current_gene_pos_idx <= scaffold_pos_li[current_scaffold_pos_idx][1]:
-            for j in range(current_gene_pos_idx, scaffold_pos_li[current_scaffold_pos_idx][1] + 1):
-                if gene_start_array[j] < g_pos < gene_end_array[j]:
-                    print("\t".join(str(x) for x in gdb_array[g_idx]),end="\t",file=output_handle)
-                    print(gene_pos_array[j][0],end="\t",file=output_handle) # Gene Symbol
-                    print(gene_pos_array[j][4],end="\t",file=output_handle) # Gene ID from NCBI
-                    print(gene_pos_array[j][5],end="\t",file=output_handle) # gene type
-                    relative_ori = 'fwd' if g_ori == gene_pos_array[j][3] else 'rev'
-                    print(relative_ori,end="\t",file=output_handle) # relative ori
-                    # # 计算gRNA relative loc和relative cut
-                    relative_loc, relative_cut = relative_pos_calc(gdb_array[g_idx][5], gdb_array[g_idx][6], g_raw_pos, g_ori, gene_start_array[j], gene_end_array[j], gene_pos_array[j][3])
-                    print(relative_loc,end="\t",file=output_handle) # relative loc
-                    print(relative_cut,end="\n",file=output_handle) # relative cut
-                    # print(g_pos,end="\t")
-                    ...
-                    # print(gene_start_array[j],end="\t")
-                    # print(gene_end_array[j],end="\t")
-                    # print(gene_pos_array[j])
-            continue
+        if scaffold_pos_len != 0:
+            if current_scaffold_pos_idx < scaffold_pos_len and scaffold_pos_li[current_scaffold_pos_idx][0] <= current_gene_pos_idx <= scaffold_pos_li[current_scaffold_pos_idx][1]:
+                for j in range(current_gene_pos_idx, scaffold_pos_li[current_scaffold_pos_idx][1] + 1):
+                    if gene_start_array[j] < g_pos < gene_end_array[j]:
+                        print("\t".join(str(x) for x in gdb_array[g_idx]),end="\t",file=output_handle)
+                        print(gene_pos_array[j][0],end="\t",file=output_handle) # Gene Symbol
+                        print(gene_pos_array[j][4],end="\t",file=output_handle) # Gene ID from NCBI
+                        print(gene_pos_array[j][5],end="\t",file=output_handle) # gene type
+                        relative_ori = 'fwd' if g_ori == gene_pos_array[j][3] else 'rev'
+                        print(relative_ori,end="\t",file=output_handle) # relative ori
+                        # # 计算gRNA relative loc和relative cut
+                        relative_loc, relative_cut = relative_pos_calc(gdb_array[g_idx][5], gdb_array[g_idx][6], g_raw_pos, g_ori, gene_start_array[j], gene_end_array[j], gene_pos_array[j][3])
+                        print(relative_loc,end="\t",file=output_handle) # relative loc
+                        print(relative_cut,end="\n",file=output_handle) # relative cut
+                        # print(g_pos,end="\t")
+                        ...
+                        # print(gene_start_array[j],end="\t")
+                        # print(gene_end_array[j],end="\t")
+                        # print(gene_pos_array[j])
+                continue
         
         
         # 如果 gRNA 位于当前基因范围内，记录信息 chr1:1335323 跨两个或以上的位点会被跳过
@@ -179,4 +181,30 @@ def gdb_annotation(gdb: pd.DataFrame, gene_pos_df: pd.DataFrame, scaffold_pos_li
     return
     
 
+def gene_annotate(project_dir: str, nc_no: str) -> None:
+    output_file = f"{project_dir}/gene_annotated/{nc_no}.tsv"
+    # 读取基因位置信息文件
+    gene_pos_df = pd.read_csv(
+        f"{project_dir}/GCF/gtf/{nc_no}/GENE.tsv",
+        sep="\t",
+        header=None,
+    )
+    # 读取gRNA db 文件
+    gdb_df = pd.read_csv(
+        f"{project_dir}/raw_with_id/{nc_no}.tsv",
+        header=None,
+        sep="\t",
+    )
+    # 找出重叠区域的起始终止索引
+    sccaffold_pos_li = scaffold_detective_numpy(gene_pos_df)
+    # print(sccaffold_pos_li)
+    # return
+    # 同时遍历gdb和gtf 为gdb条目添加基因注释
+    gdb_annotation(gdb_df, gene_pos_df, sccaffold_pos_li, output_file)
 
+
+if __name__ == "__main__":
+    project_dir = "/mnt_data/Wayne/Repositories/CRISPR/pipeline/mus"
+    nc_no = "NC_000087.8"
+    # nc_no = "NC_000067.7"
+    gene_annotate(project_dir,nc_no)
