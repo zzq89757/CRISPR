@@ -4,6 +4,7 @@ from utils.merge_raw import merge_with_order
 from utils.add_raw_id import add_raw_id
 from utils.gene_annotate import gene_annotate
 from utils.filter_intron import exon_annotate
+from utils.cds_mark import top_cds_mark
 import pandas as pd
 from pathlib import Path
 
@@ -46,7 +47,7 @@ rule all:
         #     sample=nc_li,
         # ),
         expand(
-            "{project_dir}/intron_filtered/{sample}.tsv",
+            "{project_dir}/cds_mark/{sample}.tsv",
             project_dir=project_dir,
             sample=nc_li,
         ),
@@ -142,4 +143,4 @@ rule top_cds_mark:
         cds_marked_db="{project_dir}/cds_mark/{sample}.tsv",
     run: 
         Path(f"{project_dir}/cds_mark").mkdir(exist_ok=True, parents=True)
-        
+        top_cds_mark(project_dir, wildcards.sample)

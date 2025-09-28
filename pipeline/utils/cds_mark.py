@@ -1,14 +1,11 @@
-import os
 import pandas as pd
 from .filter_intron import scaffold_detective_numpy, gdb2df, region2df
 
 
-def gene_ori_dict(nc_no: str) -> dict:
-    gene_df: pd.DataFrame = pd.read_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/Gene_list.tsv",sep="\t",header=None)
-    return dict(zip(gene_df[0], gene_df[3]))
+def common_cds_front_region(project_dir: str, cds_df: pd.DataFrame, nc_no: str) -> pd.DataFrame:
+    gene_df: pd.DataFrame = pd.read_csv(f"{project_dir}/GCF/gtf/{nc_no}/GENE.tsv",sep="\t",header=None)
 
-
-def common_cds_front_region(cds_df: pd.DataFrame, gene_ori_dict: dict, nc_no: str) -> pd.DataFrame:
+    gene_ori_dict = dict(zip(gene_df[0], gene_df[3]))
     # 找到所有转录本对应CDS的前2/3后取并集 注意方向!!!
     new_res = pd.DataFrame([])
     cds_df.columns = ["Gene", "Transcript", "CDS_start", "CDS_end"]
@@ -46,13 +43,13 @@ def common_cds_front_region(cds_df: pd.DataFrame, gene_ori_dict: dict, nc_no: st
         result_df = pd.DataFrame(result, columns=["Gene", "Transcript", "CDS_start", "CDS_end"])
         # 查看结果
         new_res = pd.concat([new_res, result_df])
-    new_res.to_csv(f"/mnt/ntc_data/wayne/Repositories/CRISPR/cds_mark/{nc_no}_region.tsv",header=None,index=False,sep="\t")
+    new_res.to_csv(f"{project_dir}/cds_mark/{nc_no}_region.tsv",header=None,index=False,sep="\t")
     new_res = new_res.sort_values("CDS_start")
     # print(new_res)
     return new_res
 
     
-def mark_cds(nc_no: str, gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file: str) -> None:
+def mark_cds(project_dir: str, nc_no: str, gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file: str) -> None:
     # output_file = "exon_filter/exu.tsv"
     output_handle = open(output_file,'w')
     
@@ -61,9 +58,9 @@ def mark_cds(nc_no: str, gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file
     # cds_df = cds_df.sort_values(by=[2, 3], key=lambda col: group_order if col.name == 2 else col)
     # cds_df[4] = cds_df.groupby(1).cumcount() + 1
     # cds_df = cds_df.sort_values(2)
-    ori_dict = gene_ori_dict(nc_no)
     
-    cds_df = common_cds_front_region(cds_df, ori_dict, nc_no)
+    
+    cds_df = common_cds_front_region(project_dir, cds_df, nc_no)
     cds_df.columns = [0,4,1,2]
     scaffold_pos_li = scaffold_detective_numpy(cds_df)
     # print(scaffold_pos_li)
@@ -171,17 +168,15 @@ def mark_cds(nc_no: str, gdb_df: pd.DataFrame, cds_df: pd.DataFrame, output_file
 
     
     
-def run_mark(nc_no) -> None:
-    gdb_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/exon_filter/NC_000024.10.tsv"
-    gdb_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/exon_filter/{nc_no}.tsv"
+def top_cds_mark(project_dir: str, nc_no:str) -> None:
+    gdb_file = f"{project_dir}/intron_filtered/{nc_no}.tsv"
     gdb_df = gdb2df(gdb_file)
     # 读取对应的CDS exon 表
-    cds_file = "/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/NC_000024.10/CDS.tsv"
-    cds_file = f"/mnt/ntc_data/wayne/Repositories/CRISPR/split_gtf/extract/{nc_no}/CDS.tsv"
+    cds_file = f"{project_dir}/GCF/gtf/{nc_no}/CDS.tsv"
     cds_df = region2df(cds_file)
     # cds_df.to_csv("./nc22.cds",header=None,sep="\t")
-    # mark_cds(gdb_df,cds_df,"/mnt/ntc_data/wayne/Repositories/CRISPR/cds_mark/NC_000024.10.tsv")
-    mark_cds(nc_no, gdb_df,cds_df,f"/mnt/ntc_data/wayne/Repositories/CRISPR/cds_mark/{nc_no}.tsv")
+    output_file = f"{project_dir}/cds_mark/{nc_no}.tsv"
+    mark_cds(project_dir, nc_no, gdb_df,cds_df,output_file)
 
 
 
@@ -189,7 +184,7 @@ def main() -> None:
     nc2chr_file = "/mnt_data/Wayne/Repositories/CRISPR/pipeline/mus/nc_li"
     nc_df = pd.read_csv(nc2chr_file, sep="\t", header=None)
     nc_li = nc_df[0].tolist()
-    run_mark(nc_li[-1])
+    top_cds_mark(nc_li[-1])
     
     
 
