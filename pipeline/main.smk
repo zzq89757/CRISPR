@@ -134,3 +134,12 @@ rule filter_intron:
     run:
         Path(f"{project_dir}/intron_filtered").mkdir(exist_ok=True, parents=True)
         exon_annotate(project_dir, wildcards.sample)
+
+rule top_cds_mark:
+    input: 
+        intron_filtered_db="{project_dir}/intron_filtered/{sample}.tsv",
+    output: 
+        cds_marked_db="{project_dir}/cds_mark/{sample}.tsv",
+    run: 
+        Path(f"{project_dir}/cds_mark").mkdir(exist_ok=True, parents=True)
+        
