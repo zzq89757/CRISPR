@@ -3,6 +3,7 @@ from utils.ref_scan import ref_scan
 from utils.merge_raw import merge_with_order
 from utils.add_raw_id import add_raw_id
 from utils.gene_annotate import gene_annotate
+from utils.filter_intron import exon_annotate
 import pandas as pd
 from pathlib import Path
 
@@ -45,7 +46,7 @@ rule all:
         #     sample=nc_li,
         # ),
         expand(
-            "{project_dir}/gene_annotated/{sample}.tsv",
+            "{project_dir}/intron_filtered/{sample}.tsv",
             project_dir=project_dir,
             sample=nc_li,
         ),
@@ -124,10 +125,12 @@ rule gene_annotate:
         Path(f"{project_dir}/gene_annotated").mkdir(exist_ok=True, parents=True)
         gene_annotate(project_dir, wildcards.sample)
 
+
 rule filter_intron:
     input:
-        gene_annotated_db = "{project_dir}/gene_annotated/{sample}.tsv",
+        gene_annotated_db="{project_dir}/gene_annotated/{sample}.tsv",
     output:
-        intron_filtered_db = "{project_dir}/intron_filtered/{sample}.tsv"
+        intron_filtered_db="{project_dir}/intron_filtered/{sample}.tsv",
     run:
-        Path(f"{project_dir}/intron_filtered").mkdir(exist_ok=True,parents=True)
+        Path(f"{project_dir}/intron_filtered").mkdir(exist_ok=True, parents=True)
+        exon_annotate(project_dir, wildcards.sample)
