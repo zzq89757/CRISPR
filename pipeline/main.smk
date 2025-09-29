@@ -6,6 +6,7 @@ from utils.gene_annotate import gene_annotate
 from utils.filter_intron import exon_annotate
 from utils.cds_mark import top_cds_mark
 from utils.tran_count import tran_ratio_count
+from utils.ag_end import ag_mark
 import pandas as pd
 from pathlib import Path
 
@@ -156,3 +157,13 @@ rule tran_count:
     run:
         Path(f"{project_dir}/tran_count").mkdir(exist_ok=True, parents=True)
         tran_ratio_count(project_dir, wildcards.sample)
+
+
+rule ag_mark:
+    input:
+        tran_counted_db="{project_dir}/tran_count/{sample}.tsv",
+    output:
+        ag_marked_db="{project_dir}/ag_mark/{sample}.tsv",
+    run:
+        Path(f"{project_dir}/ag_mark").mkdir(exist_ok=True, parents=True)
+        ag_mark(project_dir, wildcards.sample)
