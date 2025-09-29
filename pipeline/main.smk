@@ -5,6 +5,7 @@ from utils.add_raw_id import add_raw_id
 from utils.gene_annotate import gene_annotate
 from utils.filter_intron import exon_annotate
 from utils.cds_mark import top_cds_mark
+from utils.tran_count import tran_ratio_count
 import pandas as pd
 from pathlib import Path
 
@@ -136,11 +137,22 @@ rule filter_intron:
         Path(f"{project_dir}/intron_filtered").mkdir(exist_ok=True, parents=True)
         exon_annotate(project_dir, wildcards.sample)
 
+
 rule top_cds_mark:
-    input: 
+    input:
         intron_filtered_db="{project_dir}/intron_filtered/{sample}.tsv",
-    output: 
+    output:
         cds_marked_db="{project_dir}/cds_mark/{sample}.tsv",
-    run: 
+    run:
         Path(f"{project_dir}/cds_mark").mkdir(exist_ok=True, parents=True)
         top_cds_mark(project_dir, wildcards.sample)
+
+
+rule tran_count:
+    input:
+        cds_marked_db="{project_dir}/cds_mark/{sample}.tsv",
+    output:
+        tran_counted_db="{project_dir}/tran_count/{sample}.tsv",
+    run:
+        Path(f"{project_dir}/tran_count").mkdir(exist_ok=True, parents=True)
+        tran_ratio_count(project_dir, wildcards.sample)
