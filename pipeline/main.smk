@@ -167,3 +167,11 @@ rule ag_mark:
     run:
         Path(f"{project_dir}/ag_mark").mkdir(exist_ok=True, parents=True)
         ag_mark(project_dir, wildcards.sample)
+
+
+rule build_flashfry_index:
+    input: 
+        ag_marked_db="{project_dir}/ag_mark/{sample}.tsv",
+    output: 
+        
+    run: 
