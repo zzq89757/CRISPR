@@ -9,6 +9,7 @@ from utils.tran_count import tran_ratio_count
 from utils.ag_end import ag_mark
 import pandas as pd
 from pathlib import Path
+from os import system
 
 
 # 读取配置文件信息
@@ -49,12 +50,13 @@ rule all:
         #     project_dir=project_dir,
         #     sample=nc_li,
         # ),
-        expand(
-            "{project_dir}/ag_mark/{sample}.tsv",
-            project_dir=project_dir,
-            sample=nc_li,
-        ),
-        "{project_dir}/GCF/flashfry_db/NCA_cas9_db",
+        # f"{project_dir}/GCF/fa/NCA.fasta",
+        # expand(
+        #     "{project_dir}/ag_mark/{sample}.tsv",
+        #     project_dir=project_dir,
+        #     sample=nc_li,
+        # ),
+        f"{project_dir}/GCF/flashfry_db/NCA_cas9_db",
 
 
 rule data_prepare:
@@ -66,7 +68,6 @@ rule data_prepare:
         gtf="{project_dir}/GCF/gtf/{sample}.gtf",
         fa="{project_dir}/GCF/fa/{sample}.fa",
         vcf="{project_dir}/GCF/vcf/{sample}.vcf",
-        fasta="{project_dir}/GCF/NCA.fasta",
     params:
         chr_name=lambda wildcards: nc2chr_dict[wildcards.sample],
     run:
@@ -75,10 +76,17 @@ rule data_prepare:
         Path(f"{project_dir}/GCF/gtf").mkdir(exist_ok=True, parents=True)
         # 这里调用单个样本的处理逻辑
         data_prepare(project_dir, wildcards.sample, params.chr_name, input)
-    shell:
-        r"""
-        cat {project_dir}/GCF/fa > {project_dir}/GCF/NCA.fasta
-        """
+
+rule merge_fa:
+    input: 
+        # fa="{project_dir}/GCF/fa/{sample}.fa",
+        expand(
+            "{project_dir}/GCF/fa/{sample}.fa", project_dir=project_dir, sample=nc_li
+        ),
+    output: 
+        fasta="{project_dir}/GCF/fa/NCA.fasta",
+    run: 
+        system(f"cat {project_dir}/GCF/fa/NC* > {project_dir}/GCF/fa/NCA.fasta")
 
 
 rule search_ref:
@@ -179,12 +187,15 @@ rule ag_mark:
 rule build_flashfry_index:
     input:
         nca_fa_file="{project_dir}/GCF/fa/NCA.fasta",
-        ag_marked_db="{project_dir}/ag_mark/{sample}.tsv",
+        # ag_marked_db="{project_dir}/ag_mark/{sample}.tsv",
+        ag_marked_db = expand(
+            "{project_dir}/ag_mark/{sample}.tsv", project_dir=project_dir, sample=nc_li
+        ),
     output:
         flashfry_index="{project_dir}/GCF/flashfry_db/NCA_cas9_db",
-    run:
+    shell:
         # 若已经构建该物种flashfry index 直接使用 否则进行构建
         r"""
-        mkdir -p {project_dir}/GCF/flashfry_db/
+        mkdir -p {project_dir}/GCF/flashfry_db/tmp
         java -Xmx200g -jar {flashfry_bin} index --tmpLocation {project_dir}/GCF/flashfry_db/tmp --database {project_dir}/GCF/flashfry_db/NCA_cas9_db --reference {input.nca_fa_file} --enzyme spcas9
         """
