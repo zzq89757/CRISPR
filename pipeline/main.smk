@@ -200,6 +200,13 @@ rule build_flashfry_index:
         java -Xmx200g -jar {flashfry_bin} index --tmpLocation {project_dir}/GCF/flashfry_db/tmp --database {project_dir}/GCF/flashfry_db/NCA_cas9_db --reference {input.nca_fa_file} --enzyme spcas9
         """
 
+
+rule remove_n0_seq:
+    input: 
+    output: 
+    run: 
+
+
 rule flashfry_input_seq_construct:
     input: 
         ag_marked_db = expand(
@@ -217,7 +224,7 @@ rule flashfry_score:
     output: 
         flashfry_raw_out="{project_dir}/flashfry_out/"
     run: 
-        
+
 
 rule offtarget_filter:
     input: 
