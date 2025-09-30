@@ -199,3 +199,64 @@ rule build_flashfry_index:
         mkdir -p {project_dir}/GCF/flashfry_db/tmp
         java -Xmx200g -jar {flashfry_bin} index --tmpLocation {project_dir}/GCF/flashfry_db/tmp --database {project_dir}/GCF/flashfry_db/NCA_cas9_db --reference {input.nca_fa_file} --enzyme spcas9
         """
+
+rule flashfry_input_seq_construct:
+    input: 
+        ag_marked_db = expand(
+            "{project_dir}/ag_mark/{sample}.tsv", project_dir=project_dir, sample=nc_li
+        ),
+        flashfry_index="{project_dir}/GCF/flashfry_db/NCA_cas9_db",
+    output: 
+
+    run: 
+
+
+rule flashfry_score:
+    input: 
+        flashfry_index="{project_dir}/GCF/flashfry_db/NCA_cas9_db",
+    output: 
+        flashfry_raw_out="{project_dir}/flashfry_out/"
+    run: 
+        
+
+rule offtarget_filter:
+    input: 
+    output: 
+    run: 
+
+
+rule flank_fill:
+    input: 
+    output: 
+    run: 
+
+
+rule rs2_score:
+    
+    input: 
+    output: 
+    run: 
+
+
+rule snp_mark:
+    input: 
+    output: 
+    run: 
+
+
+rule utr_mark:
+    input: 
+    output: 
+    run: 
+
+
+rule low_score_mark:
+    input: 
+    output: 
+    run: 
+
+
+rule final_filter:
+    input: 
+    output: 
+    run: 
