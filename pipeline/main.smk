@@ -16,6 +16,7 @@ from pathlib import Path
 
 
 project_dir = config.get("project_dir")
+flashfry_bin = config.get("flashfry_bin")
 nc_li = pd.read_csv(config.get("nc_li"), header=None, sep="\t")[0].to_list()
 chr_li = pd.read_csv(config.get("nc_li"), header=None, sep="\t")[1].to_list()
 nc2chr_dict = dict(zip(nc_li, chr_li))
@@ -49,10 +50,11 @@ rule all:
         #     sample=nc_li,
         # ),
         expand(
-            "{project_dir}/cds_mark/{sample}.tsv",
+            "{project_dir}/ag_mark/{sample}.tsv",
             project_dir=project_dir,
             sample=nc_li,
         ),
+        "{project_dir}/GCF/flashfry_db/NCA_cas9_db",
 
 
 rule data_prepare:
@@ -64,6 +66,7 @@ rule data_prepare:
         gtf="{project_dir}/GCF/gtf/{sample}.gtf",
         fa="{project_dir}/GCF/fa/{sample}.fa",
         vcf="{project_dir}/GCF/vcf/{sample}.vcf",
+        fasta="{project_dir}/GCF/NCA.fasta",
     params:
         chr_name=lambda wildcards: nc2chr_dict[wildcards.sample],
     run:
@@ -72,6 +75,10 @@ rule data_prepare:
         Path(f"{project_dir}/GCF/gtf").mkdir(exist_ok=True, parents=True)
         # 这里调用单个样本的处理逻辑
         data_prepare(project_dir, wildcards.sample, params.chr_name, input)
+    shell:
+        r"""
+        cat {project_dir}/GCF/fa > {project_dir}/GCF/NCA.fasta
+        """
 
 
 rule search_ref:
@@ -170,8 +177,14 @@ rule ag_mark:
 
 
 rule build_flashfry_index:
-    input: 
+    input:
+        nca_fa_file="{project_dir}/GCF/fa/NCA.fasta",
         ag_marked_db="{project_dir}/ag_mark/{sample}.tsv",
-    output: 
-        
-    run: 
+    output:
+        flashfry_index="{project_dir}/GCF/flashfry_db/NCA_cas9_db",
+    run:
+        # 若已经构建该物种flashfry index 直接使用 否则进行构建
+        r"""
+        mkdir -p {project_dir}/GCF/flashfry_db/
+        java -Xmx200g -jar {flashfry_bin} index --tmpLocation {project_dir}/GCF/flashfry_db/tmp --database {project_dir}/GCF/flashfry_db/NCA_cas9_db --reference {input.nca_fa_file} --enzyme spcas9
+        """
