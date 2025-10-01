@@ -55,7 +55,7 @@ rule all:
         # ),
         # f"{project_dir}/GCF/fa/NCA.fasta",
         expand(
-            "{project_dir}/flashfry_out/fa/{sample}.fa",
+            "{project_dir}/flashfry_out/raw_out/{sample}.tsv",
             project_dir=project_dir,
             sample=nc_li,
         ),
@@ -227,14 +227,16 @@ rule flashfry_input_seq_construct:
         Path(f"{project_dir}/flashfry_out/fa").mkdir(exist_ok=True, parents=True)
         construct_seq(project_dir, wildcards.sample)
 
-# rule flashfry_score:
-#     input: 
-#         flashfry_index="{project_dir}/GCF/flashfry_db/NCA_cas9_db",
-#     output: 
-#         flashfry_raw_out="{project_dir}/flashfry_out/"
-#     run: 
-
-
+rule flashfry_score:
+    input: 
+        flashfry_seq_input="{project_dir}/flashfry_out/fa/{sample}.fa",
+    output: 
+        flashfry_raw_out="{project_dir}/flashfry_out/raw_out/{sample}.tsv"
+    shell:
+        r"""
+        mkdir -p {project_dir}/flashfry_out/raw_out
+        java -Xmx200g -jar {flashfry_bin} discover --database {project_dir}/GCF/flashfry_db/NCA_cas9_db --fasta {input.flashfry_seq_input} --output {output.flashfry_raw_out} --maxMismatch 3 --maximumOffTargets 100 --forceLinear
+        """
 # rule offtarget_filter:
 #     input: 
 #     output: 
