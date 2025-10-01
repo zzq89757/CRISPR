@@ -57,7 +57,7 @@ rule all:
         # ),
         # f"{project_dir}/GCF/fa/NCA.fasta",
         expand(
-            "{project_dir}/cfd_score/{sample}.tsv",
+            "{project_dir}/flank_fill/{sample}.tsv",
             project_dir=project_dir,
             sample=nc_li,
         ),
@@ -271,10 +271,13 @@ rule cfd_score:
         Path(f"{project_dir}/cfd_score").mkdir(exist_ok=True, parents=True)
         append_cfd_score(project_dir, wildcards.sample)
 
-# rule flank_fill:
-#     input: 
-#     output: 
-#     run: 
+rule flank_fill:
+    input: 
+        cfd_score_db="{project_dir}/cfd_score/{sample}.tsv"
+    output: 
+        flank_fill_db="{project_dir}/flank_fill/{sample}.tsv"
+    run: 
+        Path(f"{project_dir}/flank_fill").mkdir(exist_ok=True, parents=True)
 
 
 # rule rs2_score:
