@@ -281,12 +281,15 @@ rule flank_fill:
         Path(f"{project_dir}/flank_fill").mkdir(exist_ok=True, parents=True)
         flank_fill(project_dir, wildcards.sample)
 
-# rule rs2_score:
-    
-#     input: 
-#     output: 
-#     run: 
 
+rule rs2_score:  
+    input: 
+        flank_fill_db="{project_dir}/flank_fill/{sample}.tsv"
+    output: 
+        rs2_score_db="{project_dir}/rs2_score/{sample}.tsv"
+    run: 
+        Path(f"{project_dir}/rs2_score").mkdir(exist_ok=True, parents=True)
+        
 
 # rule snp_mark:
 #     input: 
