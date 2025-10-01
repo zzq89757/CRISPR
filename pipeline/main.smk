@@ -7,6 +7,7 @@ from utils.filter_intron import exon_annotate
 from utils.cds_mark import top_cds_mark
 from utils.tran_count import tran_ratio_count
 from utils.ag_end import ag_mark
+from utils.rm_n0 import remove_n0
 import pandas as pd
 from pathlib import Path
 from os import system
@@ -21,6 +22,7 @@ flashfry_bin = config.get("flashfry_bin")
 nc_li = pd.read_csv(config.get("nc_li"), header=None, sep="\t")[0].to_list()
 chr_li = pd.read_csv(config.get("nc_li"), header=None, sep="\t")[1].to_list()
 nc2chr_dict = dict(zip(nc_li, chr_li))
+chr2nc_dict = dict(zip(chr_li, nc_li))
 fna_file = config.get("fna_file")
 gtf_file = config.get("gtf_file")
 vcf_file = config.get("vcf_file")
@@ -51,11 +53,11 @@ rule all:
         #     sample=nc_li,
         # ),
         # f"{project_dir}/GCF/fa/NCA.fasta",
-        # expand(
-        #     "{project_dir}/ag_mark/{sample}.tsv",
-        #     project_dir=project_dir,
-        #     sample=nc_li,
-        # ),
+        expand(
+            "{project_dir}/ag_mark_n0_rm/{sample}.tsv",
+            project_dir=project_dir,
+            sample=nc_li,
+        ),
         f"{project_dir}/GCF/flashfry_db/NCA_cas9_db",
 
 
@@ -203,67 +205,73 @@ rule build_flashfry_index:
 
 rule remove_n0_seq:
     input: 
+        flashfry_index=f"{project_dir}/GCF/flashfry_db/NCA_cas9_db",
     output: 
-    run: 
-
-
-rule flashfry_input_seq_construct:
-    input: 
         ag_marked_db = expand(
-            "{project_dir}/ag_mark/{sample}.tsv", project_dir=project_dir, sample=nc_li
+            "{project_dir}/ag_mark_n0_rm/{sample}.tsv", project_dir=project_dir, sample=nc_li
         ),
-        flashfry_index="{project_dir}/GCF/flashfry_db/NCA_cas9_db",
-    output: 
-
     run: 
+        Path(f"{project_dir}/ag_mark_n0_rm").mkdir(exist_ok=True, parents=True)
+        remove_n0(project_dir,chr2nc_dict)
 
 
-rule flashfry_score:
-    input: 
-        flashfry_index="{project_dir}/GCF/flashfry_db/NCA_cas9_db",
-    output: 
-        flashfry_raw_out="{project_dir}/flashfry_out/"
-    run: 
+# rule flashfry_input_seq_construct:
+#     input: 
+#         ag_marked_db = expand(
+#             "{project_dir}/ag_mark/{sample}.tsv", project_dir=project_dir, sample=nc_li
+#         ),
+#         flashfry_index="{project_dir}/GCF/flashfry_db/NCA_cas9_db",
+#     output: 
+
+#     run: 
 
 
-rule offtarget_filter:
-    input: 
-    output: 
-    run: 
+# rule flashfry_score:
+#     input: 
+#         flashfry_index="{project_dir}/GCF/flashfry_db/NCA_cas9_db",
+#     output: 
+#         flashfry_raw_out="{project_dir}/flashfry_out/"
+#     run: 
 
 
-rule flank_fill:
-    input: 
-    output: 
-    run: 
+# rule offtarget_filter:
+#     input: 
+#     output: 
+#     run: 
 
 
-rule rs2_score:
+# rule flank_fill:
+#     input: 
+#     output: 
+#     run: 
+
+
+# rule rs2_score:
     
-    input: 
-    output: 
-    run: 
+#     input: 
+#     output: 
+#     run: 
 
 
-rule snp_mark:
-    input: 
-    output: 
-    run: 
+# rule snp_mark:
+#     input: 
+#     output: 
+#     run: 
 
 
-rule utr_mark:
-    input: 
-    output: 
-    run: 
+# rule utr_mark:
+#     input: 
+#     output: 
+#     run: 
 
 
-rule low_score_mark:
-    input: 
-    output: 
-    run: 
+# rule low_score_mark:
+#     input: 
+#     output: 
+#     run: 
 
 
-rule final_filter:
-    input: 
-    output: 
-    run: 
+# rule final_filter:
+#     input: 
+#     output: 
+#     run: 
