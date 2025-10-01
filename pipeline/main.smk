@@ -9,6 +9,7 @@ from utils.tran_count import tran_ratio_count
 from utils.ag_end import ag_mark
 from utils.rm_n0 import remove_n0
 from utils.flashfry_seq_construct import construct_seq
+from utils.filter_ot import filter_ot
 import pandas as pd
 from pathlib import Path
 from os import system
@@ -55,7 +56,7 @@ rule all:
         # ),
         # f"{project_dir}/GCF/fa/NCA.fasta",
         expand(
-            "{project_dir}/flashfry_out/raw_out/{sample}.tsv",
+            "{project_dir}/flashfry_out/filter_out/{sample}.tsv",
             project_dir=project_dir,
             sample=nc_li,
         ),
@@ -187,7 +188,7 @@ rule ag_mark:
         ag_mark(project_dir, wildcards.sample)
 
 
-rule build_flashfry_index:
+rule flashfry_index_build:
     input:
         nca_fa_file="{project_dir}/GCF/fa/NCA.fasta",
         # ag_marked_db="{project_dir}/ag_mark/{sample}.tsv",
@@ -227,7 +228,7 @@ rule flashfry_input_seq_construct:
         Path(f"{project_dir}/flashfry_out/fa").mkdir(exist_ok=True, parents=True)
         construct_seq(project_dir, wildcards.sample)
 
-rule flashfry_score:
+rule flashfry_search_ot:
     input: 
         flashfry_seq_input="{project_dir}/flashfry_out/fa/{sample}.fa",
     output: 
@@ -237,11 +238,15 @@ rule flashfry_score:
         mkdir -p {project_dir}/flashfry_out/raw_out
         java -Xmx200g -jar {flashfry_bin} discover --database {project_dir}/GCF/flashfry_db/NCA_cas9_db --fasta {input.flashfry_seq_input} --output {output.flashfry_raw_out} --maxMismatch 3 --maximumOffTargets 100 --forceLinear
         """
-# rule offtarget_filter:
-#     input: 
-#     output: 
-#     run: 
 
+rule flashfry_offtarget_filter:
+    input: 
+        flashfry_raw_out="{project_dir}/flashfry_out/raw_out/{sample}.tsv"
+    output: 
+        flashfry_filter_out="{project_dir}/flashfry_out/filter_out/{sample}.tsv"
+    run: 
+        Path(f"{project_dir}/flashfry_out/filter_out").mkdir(exist_ok=True, parents=True)
+        filter_ot(project_dir, wildcards.sample)
 
 # rule flank_fill:
 #     input: 
