@@ -56,7 +56,7 @@ rule all:
         # ),
         # f"{project_dir}/GCF/fa/NCA.fasta",
         expand(
-            "{project_dir}/flashfry_out/filter_out/{sample}.tsv",
+            "{project_dir}/flashfry_out/score_out/{sample}.tsv",
             project_dir=project_dir,
             sample=nc_li,
         ),
@@ -247,6 +247,19 @@ rule flashfry_offtarget_filter:
     run: 
         Path(f"{project_dir}/flashfry_out/filter_out").mkdir(exist_ok=True, parents=True)
         filter_ot(project_dir, wildcards.sample)
+
+
+rule flashfry_score:
+    input: 
+        flashfry_filter_out="{project_dir}/flashfry_out/filter_out/{sample}.tsv"
+    output: 
+        flashfry_score_out="{project_dir}/flashfry_out/score_out/{sample}.tsv"
+    shell:
+        r"""
+        mkdir -p {project_dir}/flashfry_out/score_out
+        java -Xmx200g -jar {flashfry_bin} score --input {input.flashfry_filter_out} --output {output.flashfry_score_out} --scoringMetrics doench2016cfd --database {project_dir}/GCF/flashfry_db/NCA_cas9_db
+        """
+
 
 # rule flank_fill:
 #     input: 
