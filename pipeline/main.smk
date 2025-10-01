@@ -10,6 +10,7 @@ from utils.ag_end import ag_mark
 from utils.rm_n0 import remove_n0
 from utils.flashfry_seq_construct import construct_seq
 from utils.filter_ot import filter_ot
+from utils.cfd_score_append import append_cfd_score
 import pandas as pd
 from pathlib import Path
 from os import system
@@ -56,7 +57,7 @@ rule all:
         # ),
         # f"{project_dir}/GCF/fa/NCA.fasta",
         expand(
-            "{project_dir}/flashfry_out/score_out/{sample}.tsv",
+            "{project_dir}/cfd_score/{sample}.tsv",
             project_dir=project_dir,
             sample=nc_li,
         ),
@@ -262,13 +263,13 @@ rule flashfry_score:
 
 rule cfd_score:
     input: 
-        ag_marked_db="{project_dir}/ag_mark/{sample}.tsv",
+        ag_marked_db="{project_dir}/ag_mark_n0_rm/{sample}.tsv",
         flashfry_score_out="{project_dir}/flashfry_out/score_out/{sample}.tsv"
     output: 
         cfd_score_db="{project_dir}/cfd_score/{sample}.tsv",
     run: 
         Path(f"{project_dir}/cfd_score").mkdir(exist_ok=True, parents=True)
-        
+        append_cfd_score(project_dir, wildcards.sample)
 
 # rule flank_fill:
 #     input: 
