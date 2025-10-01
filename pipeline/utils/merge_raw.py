@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 
-def merge_with_order(project_dir: str, nc_li: list[str], out_file: str):
+def merge_with_order(project_dir: str, nc_li: list, out_file: str):
     """
     用 pandas 合并 {project_dir}/ref_scan/{sample}.tsv，
     保持 nc_li 的顺序，并加上全局行号作为索引列。

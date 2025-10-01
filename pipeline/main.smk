@@ -12,6 +12,7 @@ from utils.flashfry_seq_construct import construct_seq
 from utils.filter_ot import filter_ot
 from utils.cfd_score_append import append_cfd_score
 from utils.flank_fill import flank_fill
+from utils.rs2_score import rs2_score
 import pandas as pd
 from pathlib import Path
 from os import system
@@ -58,11 +59,11 @@ rule all:
         # ),
         # f"{project_dir}/GCF/fa/NCA.fasta",
         expand(
-            "{project_dir}/flank_fill/{sample}.tsv",
+            "{project_dir}/rs2_score/{sample}.tsv",
             project_dir=project_dir,
             sample=nc_li,
         ),
-        f"{project_dir}/GCF/flashfry_db/NCA_cas9_db",
+        # f"{project_dir}/GCF/flashfry_db/NCA_cas9_db",
 
 
 rule data_prepare:
@@ -83,15 +84,16 @@ rule data_prepare:
         # 这里调用单个样本的处理逻辑
         data_prepare(project_dir, wildcards.sample, params.chr_name, input)
 
+
 rule merge_fa:
-    input: 
+    input:
         # fa="{project_dir}/GCF/fa/{sample}.fa",
         expand(
             "{project_dir}/GCF/fa/{sample}.fa", project_dir=project_dir, sample=nc_li
         ),
-    output: 
+    output:
         fasta="{project_dir}/GCF/fa/NCA.fasta",
-    run: 
+    run:
         system(f"cat {project_dir}/GCF/fa/NC* > {project_dir}/GCF/fa/NCA.fasta")
 
 
@@ -194,7 +196,7 @@ rule flashfry_index_build:
     input:
         nca_fa_file="{project_dir}/GCF/fa/NCA.fasta",
         # ag_marked_db="{project_dir}/ag_mark/{sample}.tsv",
-        ag_marked_db = expand(
+        ag_marked_db=expand(
             "{project_dir}/ag_mark/{sample}.tsv", project_dir=project_dir, sample=nc_li
         ),
     output:
@@ -208,108 +210,119 @@ rule flashfry_index_build:
 
 
 rule remove_n0_seq:
-    input: 
+    input:
         flashfry_index=f"{project_dir}/GCF/flashfry_db/NCA_cas9_db",
-    output: 
-        ag_marked_rm0_db = expand(
-            "{project_dir}/ag_mark_n0_rm/{sample}.tsv", project_dir=project_dir, sample=nc_li
+    output:
+        ag_marked_rm0_db=expand(
+            "{project_dir}/ag_mark_n0_rm/{sample}.tsv",
+            project_dir=project_dir,
+            sample=nc_li,
         ),
-    run: 
+    run:
         Path(f"{project_dir}/ag_mark_n0_rm").mkdir(exist_ok=True, parents=True)
-        remove_n0(project_dir,chr2nc_dict)
+        remove_n0(project_dir, chr2nc_dict)
 
 
 rule flashfry_input_seq_construct:
-    input: 
-        ag_marked_rm0_db = expand(
-            "{project_dir}/ag_mark_n0_rm/{sample}.tsv", project_dir=project_dir, sample=nc_li
+    input:
+        ag_marked_rm0_db=expand(
+            "{project_dir}/ag_mark_n0_rm/{sample}.tsv",
+            project_dir=project_dir,
+            sample=nc_li,
         ),
-    output: 
-        flashfry_seq_input="{project_dir}/flashfry_out/fa/{sample}.fa"
-    run: 
+    output:
+        flashfry_seq_input="{project_dir}/flashfry_out/fa/{sample}.fa",
+    run:
         Path(f"{project_dir}/flashfry_out/fa").mkdir(exist_ok=True, parents=True)
         construct_seq(project_dir, wildcards.sample)
 
+
 rule flashfry_search_ot:
-    input: 
+    input:
         flashfry_seq_input="{project_dir}/flashfry_out/fa/{sample}.fa",
-    output: 
-        flashfry_raw_out="{project_dir}/flashfry_out/raw_out/{sample}.tsv"
+    output:
+        flashfry_raw_out="{project_dir}/flashfry_out/raw_out/{sample}.tsv",
     shell:
         r"""
         mkdir -p {project_dir}/flashfry_out/raw_out
         java -Xmx200g -jar {flashfry_bin} discover --database {project_dir}/GCF/flashfry_db/NCA_cas9_db --fasta {input.flashfry_seq_input} --output {output.flashfry_raw_out} --maxMismatch 3 --maximumOffTargets 100 --forceLinear
         """
 
+
 rule flashfry_offtarget_filter:
-    input: 
-        flashfry_raw_out="{project_dir}/flashfry_out/raw_out/{sample}.tsv"
-    output: 
-        flashfry_filter_out="{project_dir}/flashfry_out/filter_out/{sample}.tsv"
-    run: 
-        Path(f"{project_dir}/flashfry_out/filter_out").mkdir(exist_ok=True, parents=True)
+    input:
+        flashfry_raw_out="{project_dir}/flashfry_out/raw_out/{sample}.tsv",
+    output:
+        flashfry_filter_out="{project_dir}/flashfry_out/filter_out/{sample}.tsv",
+    run:
+        Path(f"{project_dir}/flashfry_out/filter_out").mkdir(
+            exist_ok=True, parents=True
+        )
         filter_ot(project_dir, wildcards.sample)
 
 
 rule flashfry_score:
-    input: 
-        flashfry_filter_out="{project_dir}/flashfry_out/filter_out/{sample}.tsv"
-    output: 
-        flashfry_score_out="{project_dir}/flashfry_out/score_out/{sample}.tsv"
+    input:
+        flashfry_filter_out="{project_dir}/flashfry_out/filter_out/{sample}.tsv",
+    output:
+        flashfry_score_out="{project_dir}/flashfry_out/score_out/{sample}.tsv",
     shell:
         r"""
         mkdir -p {project_dir}/flashfry_out/score_out
         java -Xmx200g -jar {flashfry_bin} score --input {input.flashfry_filter_out} --output {output.flashfry_score_out} --scoringMetrics doench2016cfd --database {project_dir}/GCF/flashfry_db/NCA_cas9_db
         """
 
+
 rule cfd_score:
-    input: 
+    input:
         ag_marked_db="{project_dir}/ag_mark_n0_rm/{sample}.tsv",
-        flashfry_score_out="{project_dir}/flashfry_out/score_out/{sample}.tsv"
-    output: 
+        flashfry_score_out="{project_dir}/flashfry_out/score_out/{sample}.tsv",
+    output:
         cfd_score_db="{project_dir}/cfd_score/{sample}.tsv",
-    run: 
+    run:
         Path(f"{project_dir}/cfd_score").mkdir(exist_ok=True, parents=True)
         append_cfd_score(project_dir, wildcards.sample)
 
+
 rule flank_fill:
-    input: 
-        cfd_score_db="{project_dir}/cfd_score/{sample}.tsv"
-    output: 
-        flank_fill_db="{project_dir}/flank_fill/{sample}.tsv"
-    run: 
+    input:
+        cfd_score_db="{project_dir}/cfd_score/{sample}.tsv",
+    output:
+        flank_fill_db="{project_dir}/flank_fill/{sample}.tsv",
+    run:
         Path(f"{project_dir}/flank_fill").mkdir(exist_ok=True, parents=True)
         flank_fill(project_dir, wildcards.sample)
 
 
-rule rs2_score:  
-    input: 
-        flank_fill_db="{project_dir}/flank_fill/{sample}.tsv"
-    output: 
-        rs2_score_db="{project_dir}/rs2_score/{sample}.tsv"
-    run: 
+rule rs2_score:
+    input:
+        flank_fill_db="{project_dir}/flank_fill/{sample}.tsv",
+    output:
+        rs2_score_db="{project_dir}/rs2_score/{sample}.tsv",
+    # conda:
+    #     "/mnt_data/Wayne/Software/miniconda3/envs/azimuth3"
+    run:
         Path(f"{project_dir}/rs2_score").mkdir(exist_ok=True, parents=True)
-        
+        rs2_score(project_dir, wildcards.sample)
+
 
 # rule snp_mark:
-#     input: 
-#     output: 
-#     run: 
+#     input:
+#     output:
+#     run:
 
 
 # rule utr_mark:
-#     input: 
-#     output: 
-#     run: 
+#     input:
+#     output:
+#     run:
 
 
 # rule low_score_mark:
-#     input: 
-#     output: 
-#     run: 
-
-
+#     input:
+#     output:
+#     run:
 # rule final_filter:
-#     input: 
-#     output: 
-#     run: 
+#     input:
+#     output:
+#     run:

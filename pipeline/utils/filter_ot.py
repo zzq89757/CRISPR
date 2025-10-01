@@ -17,12 +17,6 @@ def ot_res2df(ot_res: str) -> pd.DataFrame:
     return df
 
 
-def run_score_cmd(file_name) -> None:
-    mem = 8
-    print(f"java -Xmx{mem}g -jar FlashFry-assembly-1.15.jar  score  --database NCA_cas9_db  --input {str(file_name)}  --output {str(file_name).replace("all_res_filter","all_score")}  --scoringMetrics doench2016cfd")
-    system(f"java -Xmx{mem}g -jar /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/FlashFry-assembly-1.15.jar  score  --database /mnt/ntc_data/wayne/Repositories/CRISPR/sites_found/flashfry/db_NGG/NCA_cas9_db  --input {str(file_name)}  --output {str(file_name).replace("all_res_filter","all_score")}  --scoringMetrics doench2016cfd")
-
-
 # 读取扫ot库的结果 获取保留的gRNA list 用于算分等操作
 
 def filtered_gRNA_list(ot_res_df: pd.DataFrame) -> list:
