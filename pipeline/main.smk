@@ -11,6 +11,7 @@ from utils.rm_n0 import remove_n0
 from utils.flashfry_seq_construct import construct_seq
 from utils.filter_ot import filter_ot
 from utils.cfd_score_append import append_cfd_score
+from utils.flank_fill import flank_fill
 import pandas as pd
 from pathlib import Path
 from os import system
@@ -278,7 +279,7 @@ rule flank_fill:
         flank_fill_db="{project_dir}/flank_fill/{sample}.tsv"
     run: 
         Path(f"{project_dir}/flank_fill").mkdir(exist_ok=True, parents=True)
-
+        flank_fill(project_dir, wildcards.sample)
 
 # rule rs2_score:
     
