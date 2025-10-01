@@ -260,6 +260,15 @@ rule flashfry_score:
         java -Xmx200g -jar {flashfry_bin} score --input {input.flashfry_filter_out} --output {output.flashfry_score_out} --scoringMetrics doench2016cfd --database {project_dir}/GCF/flashfry_db/NCA_cas9_db
         """
 
+rule cfd_score:
+    input: 
+        ag_marked_db="{project_dir}/ag_mark/{sample}.tsv",
+        flashfry_score_out="{project_dir}/flashfry_out/score_out/{sample}.tsv"
+    output: 
+        cfd_score_db="{project_dir}/cfd_score/{sample}.tsv",
+    run: 
+        Path(f"{project_dir}/cfd_score").mkdir(exist_ok=True, parents=True)
+        
 
 # rule flank_fill:
 #     input: 
