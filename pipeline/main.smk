@@ -8,6 +8,7 @@ from utils.cds_mark import top_cds_mark
 from utils.tran_count import tran_ratio_count
 from utils.ag_end import ag_mark
 from utils.rm_n0 import remove_n0
+from utils.flashfry_seq_construct import construct_seq
 import pandas as pd
 from pathlib import Path
 from os import system
@@ -54,7 +55,7 @@ rule all:
         # ),
         # f"{project_dir}/GCF/fa/NCA.fasta",
         expand(
-            "{project_dir}/ag_mark_n0_rm/{sample}.tsv",
+            "{project_dir}/flashfry_out/fa/{sample}.fa",
             project_dir=project_dir,
             sample=nc_li,
         ),
@@ -207,7 +208,7 @@ rule remove_n0_seq:
     input: 
         flashfry_index=f"{project_dir}/GCF/flashfry_db/NCA_cas9_db",
     output: 
-        ag_marked_db = expand(
+        ag_marked_rm0_db = expand(
             "{project_dir}/ag_mark_n0_rm/{sample}.tsv", project_dir=project_dir, sample=nc_li
         ),
     run: 
@@ -215,16 +216,16 @@ rule remove_n0_seq:
         remove_n0(project_dir,chr2nc_dict)
 
 
-# rule flashfry_input_seq_construct:
-#     input: 
-#         ag_marked_db = expand(
-#             "{project_dir}/ag_mark/{sample}.tsv", project_dir=project_dir, sample=nc_li
-#         ),
-#         flashfry_index="{project_dir}/GCF/flashfry_db/NCA_cas9_db",
-#     output: 
-
-#     run: 
-
+rule flashfry_input_seq_construct:
+    input: 
+        ag_marked_rm0_db = expand(
+            "{project_dir}/ag_mark_n0_rm/{sample}.tsv", project_dir=project_dir, sample=nc_li
+        ),
+    output: 
+        flashfry_seq_input="{project_dir}/flashfry_out/fa/{sample}.fa"
+    run: 
+        Path(f"{project_dir}/flashfry_out/fa").mkdir(exist_ok=True, parents=True)
+        construct_seq(project_dir, wildcards.sample)
 
 # rule flashfry_score:
 #     input: 
