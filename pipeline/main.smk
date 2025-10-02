@@ -299,11 +299,9 @@ rule rs2_score:
         flank_fill_db="{project_dir}/flank_fill/{sample}.tsv",
     output:
         rs2_score_db="{project_dir}/rs2_score/{sample}.tsv",
-    # conda:
-    #     "/mnt_data/Wayne/Software/miniconda3/envs/azimuth3"
     run:
         Path(f"{project_dir}/rs2_score").mkdir(exist_ok=True, parents=True)
-        rs2_score(project_dir, wildcards.sample)
+        shell(f"/mnt_data/Wayne/Software/miniconda3/envs/azimuth3/bin/python3 utils/rs2_score.py {project_dir} {wildcards.sample}")
 
 
 # rule snp_mark:
