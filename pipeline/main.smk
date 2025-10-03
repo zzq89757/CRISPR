@@ -14,6 +14,7 @@ from utils.cfd_score_append import append_cfd_score
 from utils.flank_fill import flank_fill
 from utils.rs2_score import rs2_score
 from utils.snp_mark import snp_mark
+from utils.utr_mark import utr_mark
 import pandas as pd
 from pathlib import Path
 from os import system
@@ -60,7 +61,7 @@ rule all:
         # ),
         # f"{project_dir}/GCF/fa/NCA.fasta",
         expand(
-            "{project_dir}/snp_mark/{sample}.tsv",
+            "{project_dir}/utr_mark/{sample}.tsv",
             project_dir=project_dir,
             sample=nc_li,
         ),
@@ -316,10 +317,14 @@ rule snp_mark:
         snp_mark(project_dir, wildcards.sample)
 
 
-# rule utr_mark:
-#     input:
-#     output:
-#     run:
+rule utr_mark:
+    input:
+        snp_mark_db="{project_dir}/snp_mark/{sample}.tsv"
+    output:
+        utr_mark_db="{project_dir}/utr_mark/{sample}.tsv"
+    run:
+        Path(f"{project_dir}/utr_mark").mkdir(exist_ok=True, parents=True)
+        utr_mark(project_dir, wildcards.sample)
 
 
 # rule low_score_mark:
