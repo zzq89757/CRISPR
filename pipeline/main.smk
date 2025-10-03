@@ -13,6 +13,7 @@ from utils.filter_ot import filter_ot
 from utils.cfd_score_append import append_cfd_score
 from utils.flank_fill import flank_fill
 from utils.rs2_score import rs2_score
+from utils.snp_mark import snp_mark
 import pandas as pd
 from pathlib import Path
 from os import system
@@ -59,7 +60,7 @@ rule all:
         # ),
         # f"{project_dir}/GCF/fa/NCA.fasta",
         expand(
-            "{project_dir}/rs2_score/{sample}.tsv",
+            "{project_dir}/snp_mark/{sample}.tsv",
             project_dir=project_dir,
             sample=nc_li,
         ),
@@ -304,10 +305,15 @@ rule rs2_score:
         shell(f"/mnt_data/Wayne/Software/miniconda3/envs/azimuth3/bin/python3 utils/rs2_score.py {project_dir} {wildcards.sample}")
 
 
-# rule snp_mark:
-#     input:
-#     output:
-#     run:
+rule snp_mark:
+    input:
+        rs2_score_db="{project_dir}/rs2_score/{sample}.tsv",
+        vcf_file="{project_dir}/GCF/vcf/{sample}.vcf"
+    output:
+        snp_mark_db="{project_dir}/snp_mark/{sample}.tsv"
+    run:
+        Path(f"{project_dir}/snp_mark").mkdir(exist_ok=True, parents=True)
+        snp_mark(project_dir, wildcards.sample)
 
 
 # rule utr_mark:
